@@ -5,8 +5,56 @@ typedef struct node{
     char *key;
     char *val;
     struct node *next;
-};
-node * variables = 0;
+} node;
+
+typedef struct inode{
+    //file=0, folder=1, tail guard=2
+    size_t type;
+    //file/folder name
+    char * name;
+    //file=content, folder=NULL
+    char * content;
+    //file=NULL, folder=linked list of files
+    struct inode * files;
+    //single/last item=NULL, linked list=next
+    struct inode * next;
+    //file=-1,folder=filecount
+    size_t filecount;
+} inode;
+node * variables = NULL;
+inode * root = NULL;
+
+void mkdir(char *cmd)
+{
+    node * cmds = (node *)malloc(sizeof(node));
+    node * curr_cmd = cmds;
+    if(cmds<=0)
+        _Exit(1);
+    printf("%s\n", cmd);
+    char delim[] = "/";
+    char *ptr = strtok(cmd, delim);
+    while (ptr != NULL)
+    {
+        curr_cmd->key = NULL;
+        size_t val_len = strlen(ptr);
+        curr_cmd->val = (char *)malloc(val_len+1);
+        strcpy(curr_cmd->val, ptr);
+        curr_cmd->next = (node *)malloc(sizeof(node));
+        curr_cmd = curr_cmd->next;
+        ptr = strtok(NULL, delim);
+    }
+    curr_cmd->key = NULL;
+    curr_cmd->val = NULL;
+    curr_cmd->next = NULL;
+
+    //test function
+    curr_cmd = cmds;
+    while(curr_cmd > 0 && curr_cmd->val > 0)
+    {
+        printf("%s\n", curr_cmd->val);
+        curr_cmd = curr_cmd->next;
+    }
+}
 
 void declare(char *key,char *val)
 {
@@ -17,8 +65,8 @@ void declare(char *key,char *val)
     size_t val_len = strlen(val);
     ptr->key = (char *)malloc(key_len+1);
     ptr->val = (char *)malloc(val_len+1);
-    if(ptr->key <= 0 or ptr->val <= 0)
-        _Exit(1);
+    if(ptr->key <= 0 || ptr->val <= 0)
+    _Exit(1);
     memset(ptr->key,0,key_len+1);
     memset(ptr->val,0,val_len+1);
     strcpy(ptr->key,key);
@@ -28,7 +76,7 @@ void declare(char *key,char *val)
 }
 void echo(char *c)
 {
-    
+
     if(!strncmp(c,"$",1))
     {
         c = c+1;
@@ -38,7 +86,7 @@ void echo(char *c)
             if(!strcmp(c,ptr->key))
             {
                 printf("%s\n",ptr->val);
-                
+
                 return ;
             }
             ptr = ptr->next;
@@ -98,7 +146,7 @@ void sh4ll()
         else{
             *pos = 0 ;
             declare(cmd,pos+1);
-        } 
+        }
     }
     else{
         * pos = 0;
@@ -107,6 +155,9 @@ void sh4ll()
         }
         else if(!strcmp("unset",cmd)){
             unset(pos+1);
+        }
+        else if(!strcmp("mkdir",cmd)){
+            mkdir(pos+1);
         }
         else{
             printf("command not found: %s",cmd);
