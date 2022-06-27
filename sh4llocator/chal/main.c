@@ -8,116 +8,154 @@ typedef struct node{
 } node;
 
 typedef struct inode{
-    //file=0, folder=1, tail guard=2
-    size_t type;
-    //file/folder name
+    size_t type; // 1 -> dir 0-> file
     char * name;
-    //file=content, folder=NULL
-    char * content;
-    //file=NULL, folder=linked list of files
-    struct inode * files;
-    //single/last item=NULL, linked list=next
-    struct inode * next;
-    //file=-1,folder=filecount
-    size_t filecount;
+    inode  ptr[0x10];
+    char * content; 
 } inode;
+
 node * variables = NULL;
-inode * root = NULL;
-
-void mkdir(char *cmd)
+inode * home = NULL;
+bool check_name()
 {
-    node * cmds = (node *)malloc(sizeof(node));
-    if(cmds<=0)
-        _Exit(1);
-    node * curr_cmd = cmds;
-
-    size_t cmd_count = 0;
-    char delim[] = "/";
-
-    char *ptr = strtok(cmd, delim);
-    if(ptr<=0)
-        _Exit(1);
-
-    while (ptr > 0)
+    return 1;
+}
+void insert(inode * dir,inode * item){
+    for(int i=0;i<0x10;i++)
     {
-        curr_cmd->key = NULL;
-        size_t val_len = strlen(ptr);
-        curr_cmd->val = (char *)malloc(val_len+1);
-        strcpy(curr_cmd->val, ptr);
-        curr_cmd->next = (node *)malloc(sizeof(node));
-        curr_cmd = curr_cmd->next;
-        cmd_count++;
-        ptr = strtok(NULL, delim);
-    }
-    curr_cmd->key = NULL;
-    curr_cmd->val = NULL;
-    curr_cmd->next = NULL;
-
-
-    //test function
-    curr_cmd = cmds;
-    while(curr_cmd > 0 && curr_cmd->val > 0)
-    {
-        printf("%s\n", curr_cmd->val);
-        curr_cmd = curr_cmd->next;
-    }
-
-    curr_cmd = cmds;
-    //error: wrong execute
-    if(curr_cmd <= 0)
-        exit(-1);
-    //no input
-    if(curr_cmd->next == 0)
-        return;
-    
-    //browse the file system until we are there to add a folder
-    while(curr_cmd->next->val > 0)
-    {
-        inode * browse = root;
-
-        //browse the curr folder to find the next level
-        while(curr_cmd->next > 0)
+        if(dir->ptr[i]==0)
         {
-            if(strcpy(browse->content, )
-            if(browse->type == 1)
+            dir->ptr[i] = item;
+            return ;
+        }
+    }
+    _exit(1);   
+}
+inode * pwd(){
+    ;
+}
+void inode_init(int type,char *cmd)
+{
+    inode * p = (inode *)malloc(sizeof(inode));
+    p->type = type;
+    if(check_name(cmd))
+    {
+        p->name = strdup(cmd);
+        for(int i=0;i<0x10;i++)
+            p->ptr[i]=0;
+        p->content = 0;
+        inode *cur = pwd();
+        insert(cur,p);
+        return ; 
+    }
+    _exit(1);
+}
+void mkdir(char *cmd){
+    if(!strcpy("",cmd))
+        return ;
+    inode_init(0,cmd);
+    return ;
+}
+void touch(char *cmd)
+{
+    if(!strcpy("",cmd))
+        return ;
+    inode_init(1,cmd);
+    return ;
+}
+void rm_file(char *name, inode *cur_path){
+    if(!strcpy("",cmd))
+        return ;
+    inode *cur = cur_path;
+    for(int i=0;i<0x10;i++)
+    {
+        if(cur->ptr[i]==0 || cur->ptr[i]->type==0)
+            continue; 
+
+        if(!strcmp(cmd,cur->ptr[i]->name))
+        {
+            inode * target = cur->ptr[i];
+            free(target->name);
+            if(target->content!=0)
+                free(target->content);
+            free(target);
+            cur->ptr[i] = 0;
+
+            return ; 
+        }  
+    }
+    return ;
+}
+void rm(char *cmd){
+    rm_file(cmd,pwd())
+}
+void rm_dir(char *name, inode *cur_path){
+    if(!strcpy("",cmd))
+        return ;
+    inode *cur = cur_path;
+    int i = 0;
+    for(i = 0;i<0x10;i++)
+    {
+        if(cur->ptr[i]==0 || cur->ptr[i]->type==1)
+            continue; 
+        if(!strcmp(cmd,cur->ptr[i]->name))
+        {
+            cur = cur->ptr[i];
+            break;
+        }
+    }
+    if(i==0x10) // dir doesn't exist
+        return ;
+    // Find the target and start to delete the contents
+    for(int i=0;i<0x10;i++)
+    {
+        if(cur->ptr[i]==0)
+            continue; 
+        if(cur->ptr[i]->type==1)
+            rm_file(cur->ptr[i]->name,cur);
+        else if(cur->ptr[i]->type==1)
+            rm_dir(cur->ptr[i]->name,cur);
+        else
+            _exit(1);
+
+    }
+    return ;
+}
+void rmdir(char *cmd){
+    rm_dir(cmd,pwd())
+}
+void ls_dir(inode * target)
+{
+    for(int i=0;i<0x10;i++)
+    {
+        if(cur->ptr[i]!=0)
+            printf("%s\t",cur->ptr[i]->name);
+    }
+    puts("");
+}
+void ls(char *cmd){
+    inode * cur = pwd();
+    inode * target = 0;
+    if(!strcpy("",cmd))
+        target = pwd();
+    else
+    {
+        for(int i=0;i<0x10;i++)
+        {
+            if(cur->ptr[i]==0 || cur->ptr[i]->type==1)
+                continue; 
+
+            if(!strcmp(cmd,cur->ptr[i]->name))
             {
-                browse = browse->next;
-                curr_cmd = curr_cmd->next;
-            }
-            else
-                printf("%s", "directory does not exist");
-                exit(-1);
+                target = cur->ptr[i];
+                break;
+            }  
         }
-        //add a folder
-        if(browse->type == 2)
-        {
-            inode * tail = (inode*) malloc(sizeof (inode));
-            if(tail<=0)
-                _Exit(1);
-            tail->type = 2;
-            tail->name = NULL;
-            tail->content = NULL;
-            tail->files = NULL;
-            tail->next = NULL;
-            tail->next = NULL;
-            tail->filecount = 0;
-            
-            browse->type = 1;
-            browse->name = 
-        }
-
-            /*root = (inode *)malloc(sizeof(inode));
-            if(root<=0)
-                _Exit(1);
-            root->type = 2;
-            root->name = NULL;
-            root->content = NULL;
-            root->files = NULL;
-            root->next = NULL;
-            root->next = NULL;
-            root->filecount = 0;*/
-
     }
+    if(target==0)
+        _exit(1);
+    ls_dir(target);
+    return;
 }
 
 void declare(char *key,char *val)
@@ -230,19 +268,20 @@ void sh4ll() //TODO: sh3ll?
     free(cmd);
     return ;
 }
+void init_home()
+{
+    home = (inode *)malloc(sizeof(inode));
+    if(home<=0)
+        _exit(1);
+    home->type = 0;
+    home->name = strdup("~");
+    for(int i=0;i<0x10;i++)
+        home->ptr[i]=0;
+    home->content = 0;
+}
 void init()
 {
-    //add a tail guard for file system
-    root = (inode *)malloc(sizeof(inode));
-    if(root<=0)
-        _Exit(1);
-    root->type = 2;
-    root->name = NULL;
-    root->content = NULL;
-    root->files = NULL;
-    root->next = NULL;
-    root->next = NULL;
-    root->filecount = 0;
+    ;
 }
 void usage(){};
 void shell()
@@ -256,6 +295,7 @@ void shell()
 int main()
 {
     init();
+    init_home();
     usage();
     shell();
 }
