@@ -27,13 +27,18 @@ inode * root = NULL;
 void mkdir(char *cmd)
 {
     node * cmds = (node *)malloc(sizeof(node));
-    node * curr_cmd = cmds;
     if(cmds<=0)
         _Exit(1);
-    printf("%s\n", cmd);
+    node * curr_cmd = cmds;
+
+    size_t cmd_count = 0;
     char delim[] = "/";
+
     char *ptr = strtok(cmd, delim);
-    while (ptr != NULL)
+    if(ptr<=0)
+        _Exit(1);
+
+    while (ptr > 0)
     {
         curr_cmd->key = NULL;
         size_t val_len = strlen(ptr);
@@ -41,11 +46,13 @@ void mkdir(char *cmd)
         strcpy(curr_cmd->val, ptr);
         curr_cmd->next = (node *)malloc(sizeof(node));
         curr_cmd = curr_cmd->next;
+        cmd_count++;
         ptr = strtok(NULL, delim);
     }
     curr_cmd->key = NULL;
     curr_cmd->val = NULL;
     curr_cmd->next = NULL;
+
 
     //test function
     curr_cmd = cmds;
@@ -53,6 +60,63 @@ void mkdir(char *cmd)
     {
         printf("%s\n", curr_cmd->val);
         curr_cmd = curr_cmd->next;
+    }
+
+    curr_cmd = cmds;
+    //error: wrong execute
+    if(curr_cmd <= 0)
+        exit(-1);
+    //no input
+    if(curr_cmd->next == 0)
+        return;
+    
+    //browse the file system until we are there to add a folder
+    while(curr_cmd->next->val > 0)
+    {
+        inode * browse = root;
+
+        //browse the curr folder to find the next level
+        while(curr_cmd->next > 0)
+        {
+            if(strcpy(browse->content, )
+            if(browse->type == 1)
+            {
+                browse = browse->next;
+                curr_cmd = curr_cmd->next;
+            }
+            else
+                printf("%s", "directory does not exist");
+                exit(-1);
+        }
+        //add a folder
+        if(browse->type == 2)
+        {
+            inode * tail = (inode*) malloc(sizeof (inode));
+            if(tail<=0)
+                _Exit(1);
+            tail->type = 2;
+            tail->name = NULL;
+            tail->content = NULL;
+            tail->files = NULL;
+            tail->next = NULL;
+            tail->next = NULL;
+            tail->filecount = 0;
+            
+            browse->type = 1;
+            browse->name = 
+        }
+
+            /*root = (inode *)malloc(sizeof(inode));
+            if(root<=0)
+                _Exit(1);
+            root->type = 2;
+            root->name = NULL;
+            root->content = NULL;
+            root->files = NULL;
+            root->next = NULL;
+            root->next = NULL;
+            root->filecount = 0;*/
+
     }
 }
 
@@ -121,7 +185,7 @@ void unset(char *c)
         ptr = ptr->next;
     }
 }
-void sh4ll()
+void sh4ll() //TODO: sh3ll?
 {
     size_t buffer_size = 0x400;
     char* cmd = (char *)malloc(buffer_size);
@@ -166,7 +230,20 @@ void sh4ll()
     free(cmd);
     return ;
 }
-void init(){};
+void init()
+{
+    //add a tail guard for file system
+    root = (inode *)malloc(sizeof(inode));
+    if(root<=0)
+        _Exit(1);
+    root->type = 2;
+    root->name = NULL;
+    root->content = NULL;
+    root->files = NULL;
+    root->next = NULL;
+    root->next = NULL;
+    root->filecount = 0;
+}
 void usage(){};
 void shell()
 {
