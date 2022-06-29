@@ -8,7 +8,7 @@
 #define XRound 1
 
 double R = 0.32;
-size_t L = 0x400;
+size_t L = 500;
 
 // Utils 
 void panic(const char *s)
@@ -66,6 +66,12 @@ void * secure_realloc(void * p, size_t size){
         panic("Realloc error");
     return p ; 
 }
+int secure_open(const char * fname){
+    int f = open(fname,0)
+    if(f<0)
+        panic("Open error")
+    return f;
+}
 key_struct * key_init(uint8_t *key,size_t kl){
     key_struct *k = 0 ;
     k       = secure_malloc(sizeof(key_struct));
@@ -85,12 +91,10 @@ void enc(uint8_t *plaintext, size_t plaintext_len , key_struct * k){
     uint8_t * e = 0;
     size_t c_len = plaintext_len;
 
-    f   = open("/dev/urandom",0,0);
+    f   = secure_open("/dev/urandom");
     p   = plaintext; 
     e   = secure_realloc(0, c_len);
     
-    if(f<0)
-        panic("Open");
     if(k->rb)
     {
         if(k->rb->pos)
@@ -159,7 +163,7 @@ void dec(uint8_t *ciphertext, size_t c_len,key_struct *key){
 void logo_loader(){
     char buf[0x100] ; 
     memset(buf,0,sizeof(buf));
-    int f =  open("./logo",0);
+    int f =  secure_open("./logo");
     size_t res = read(f,buf,sizeof(buf));
     if(res>sizeof(buf))
         exit(1);
@@ -167,8 +171,8 @@ void logo_loader(){
 }
 void init(){
     fclose(stderr);
-    setvbuf(stdin, 0LL, 2, 0LL);
-    setvbuf(stdout, 0LL, 2, 0LL);
+    setvbuf(stdin, 0, 2, 0);
+    setvbuf(stdout, 0, 2, 0);
     alarm(120); //I'll set the alarm in set-up.sh so I can remove this.
     logo_loader();
 }
@@ -320,15 +324,32 @@ void decode(){
     dec(c,c_len,KList[idx]);
     puts("\n[+] Decode Done");
 }
+char *CD[4]= {0}; // candidates
+int Candidate_Init = 0;
 void init_candidates()
 {
-    
+    int urd     = secure_open("/dev/urandom");
+    int f       = secure_open("./words_list");
+    for(int i = 0 ; i<0x4; i++)
+    {
+        CD[i] = secure_malloc(L);
+        size_t ct = 0 ;
+        while(ct<L)
+        {
+            urand_byte(urd) ....
+            //todo
+        }
+    }
 }
 int singleR(){
 
     return 1;
 }
+
 void challge(){
+    if(Candidate_Init==0){
+        init_candidates();
+    }
     size_t win = 0 ; 
     for(int i = 0 ; i < XRound ; i++)
     {
