@@ -4,6 +4,9 @@
 #include<stdlib.h>
 #include<unistd.h>
 #include<string.h>
+
+#define XRound 1
+
 double R = 0.32;
 size_t L = 0x400;
 
@@ -153,22 +156,28 @@ void dec(uint8_t *ciphertext, size_t c_len,key_struct *key){
         write(1,&n,1);
     }
 }
-void logo(){
-    ;
+void logo_loader(){
+    char buf[0x100] ; 
+    memset(buf,0,sizeof(buf));
+    int f =  open("./logo",0);
+    size_t res = read(f,buf,sizeof(buf));
+    if(res>sizeof(buf))
+        exit(1);
+    puts(buf);
 }
 void init(){
     fclose(stderr);
     setvbuf(stdin, 0LL, 2, 0LL);
     setvbuf(stdout, 0LL, 2, 0LL);
-    alarm(120);//I'll set the alarm in set-up.sh so I can remove this.
-    logo();
+    alarm(120); //I'll set the alarm in set-up.sh so I can remove this.
+    logo_loader();
 }
 void menu(){
     puts(" =========================");
     puts("0. Key Management");
     puts("1. Encode");
     puts("2. Decode");
-    puts("3. Challenge this Encryption Scheme");
+    puts("3. Challenge");
     puts("4. Leave");
     puts(" ========================= ");
 }
@@ -311,9 +320,21 @@ void decode(){
     dec(c,c_len,KList[idx]);
     puts("\n[+] Decode Done");
 }
+int singleR(){
+    return 1;
+}
 void challge(){
-    ;
-    //todo
+    size_t win = 0 ; 
+    for(int i = 0 ; i < XRound ; i++)
+    {
+        if(singleR)
+            win++;
+    }
+    if(win != XRound)
+        return ;
+    puts("n132 >> I am pretty sure you are able to break this xor-variant, you can now challge more diffcult versions.");
+    
+    //todo: a vul;
 }
 void play_ground()
 {
