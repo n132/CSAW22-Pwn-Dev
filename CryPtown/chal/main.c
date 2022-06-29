@@ -320,20 +320,26 @@ void decode(){
     dec(c,c_len,KList[idx]);
     puts("\n[+] Decode Done");
 }
+void init_candidates()
+{
+    
+}
 int singleR(){
+
     return 1;
 }
 void challge(){
     size_t win = 0 ; 
     for(int i = 0 ; i < XRound ; i++)
     {
-        if(singleR)
+        printf("Round %d: \n",i);
+        if(singleR())
             win++;
     }
     if(win != XRound)
         return ;
     puts("n132 >> I am pretty sure you are able to break this xor-variant, you can now challge more diffcult versions.");
-    
+
     //todo: a vul;
 }
 void play_ground()
