@@ -130,6 +130,7 @@ void enc(uint8_t *plaintext, size_t plaintext_len , key_struct * k){
         }
         return;
     #endif
+    puts("Ciphertext:");
     write(1,e,ct);
     free(e);
 }
@@ -137,6 +138,7 @@ void dec(uint8_t *ciphertext, size_t c_len,key_struct *key){
     size_t ct  = 0 ; 
     size_t kl = key->key_len;
     uint8_t * key_string = key->key;
+    puts("Plaintext:");
     for(int i=0;i<c_len;i++)
     {
         if( ct < key->rb->cur);
@@ -162,7 +164,7 @@ void init(){
     logo();
 }
 void menu(){
-    puts("=========================");
+    puts(" =========================");
     puts("0. Key Management");
     puts("1. Encode");
     puts("2. Decode");
@@ -172,7 +174,7 @@ void menu(){
 }
 void key_list(){
     int tmp = 1 ; 
-    puts(" ========================= ");
+    puts(" ************************* ");
     
     for(int i = 0 ; i<0x10; i++)
     {
@@ -183,9 +185,9 @@ void key_list(){
         }
     }
     if(tmp==1)
-        puts("\t\tNone");
+        puts("\tNone");
 
-    puts(" ========================= ");
+    puts(" ************************* ");
 }
 int key_insert(key_struct * k)
 {
@@ -284,9 +286,10 @@ void encode(){
     if(p_len>0x1000)
         panic("Too long to keep it secure"); //This is actually a hint!
     uint8_t *plaintext  = (uint8_t *)secure_malloc(p_len);
+    printf("Plaintext: ");
     readn(plaintext,p_len);
     enc(plaintext,p_len,KList[idx]);
-    puts("[+] Encode Done");
+    puts("\n[+] Encode Done");
 }
 void decode(){
     key_list();
@@ -295,7 +298,10 @@ void decode(){
     if(idx >= 0x10)
         panic("Invalid data");
     if(KList[idx]==0 || KList[idx]->rb==0 || KList[idx]->rb->pos==0)
-        panic("Invalid data");
+    {
+        puts("Invalid data");
+        return ; 
+    }
     printf("The length of your ciphertext: ");
     size_t c_len = readint();
     if(c_len>0x2000 || c_len == 0)
@@ -303,7 +309,7 @@ void decode(){
     uint8_t *c = secure_malloc(c_len);
     readn(c,c_len);
     dec(c,c_len,KList[idx]);
-    puts("[+] Decode Done");
+    puts("\n[+] Decode Done");
 }
 void challge(){
     ;
