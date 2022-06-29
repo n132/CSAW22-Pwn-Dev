@@ -1,2 +1,2 @@
-main: main.c utils.c
-	gcc main.c -o ./main
+main: main.c
+	gcc -w main.c -o ./main
