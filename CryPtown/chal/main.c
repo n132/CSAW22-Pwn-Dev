@@ -74,7 +74,7 @@ int secure_open(const char * fname){
     return f;
 }
 void base64_output(char *buf,size_t len){
-    size_t size = (len/3+1)*4+1;
+    size_t size = Base64encode_len(len);
     char *tmp = secure_malloc(size);
     memset(tmp,0,size);
     int out_len = Base64encode(tmp,buf,len);

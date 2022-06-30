@@ -1,3 +1,20 @@
 # CSAW22-Pwn-Dev
 
-# About last byte orecal.
+# Last Byte Orecal
+
+# Idea
+
+# Code Review
+## Issues
+
+## Solved Issues
+
+# Fuzzers
+
+# Poc Script
+
+# Exploit Script
+
+
+
+
