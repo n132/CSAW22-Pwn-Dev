@@ -1,6 +1,9 @@
-# Ignore Mac system files
 .DS_store
-__pycache__
+
 .gdb_history
-peda-session-main.txt
+
+__pycache__
+
+peda-session-*.txt
+
 .vscode
