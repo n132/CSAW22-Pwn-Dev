@@ -4,7 +4,7 @@
 #include<stdlib.h>
 #include<unistd.h>
 #include<string.h>
-
+#include</mnt/c/Users/n132/Documents/GitHub/CSAW22-Pwn-Dev/CryPtown/chal/base64.h>
 #define XRound 1
 
 double R = 0.32;
@@ -38,6 +38,7 @@ uint8_t urand_byte(int f)
     read(f,&r,1);
     return r;    
 }
+
 // ------------------------------------------------------------
 typedef struct random_bytes
 {
@@ -72,6 +73,21 @@ int secure_open(const char * fname){
         panic("Open error");
     return f;
 }
+void base64_output(char *buf,size_t len){
+    size_t size = (len/3+1)*4+1;
+    char *tmp = secure_malloc(size);
+    memset(tmp,0,size);
+    int out_len = Base64encode(tmp,buf,len);
+    if(size < out_len || out_len<=1)
+    {
+        panic("oob");
+    }
+
+    // printf("%d %d\n",len,out_len);
+    write(1,tmp,out_len-1);
+    free(tmp);
+}
+
 key_struct * key_init(uint8_t *key,size_t kl){
     key_struct *k = 0 ;
     k       = secure_malloc(sizeof(key_struct));
@@ -142,15 +158,17 @@ void enc(uint8_t *plaintext, size_t plaintext_len , key_struct * k){
         return;
     #endif
     puts("Ciphertext:");
-    write(1,e,ct);
+    base64_output(e,ct);
     free(e);
 }
-void dec(uint8_t *ciphertext, size_t c_len,key_struct *key){
-    size_t ct  = 0 ; 
-    size_t kl = key->key_len;
-    uint8_t * key_string = key->key;
+void dec(uint8_t *ciphertext, size_t c_len, key_struct *key){
+    size_t ct               = 0 ; 
+    size_t kl               = key->key_len;
+    uint8_t * key_string    = key->key;
+    uint8_t * raw           = secure_malloc(c_len+1);
+    size_t raw_len          = Base64decode(raw,ciphertext);
     puts("Plaintext:");
-    for(int i=0;i<c_len;i++)
+    for(int i=0 ; i< raw_len-1 ;i++)
     {
         if( ct < key->rb->cur);
         {
@@ -160,9 +178,10 @@ void dec(uint8_t *ciphertext, size_t c_len,key_struct *key){
                 continue;
             }
         }
-        uint8_t n = ciphertext[i] ^ key_string[(i-ct)%kl];
+        uint8_t n = raw[i] ^ key_string[(i-ct)%kl];
         write(1,&n,1);
     }
+    free(raw);
 }
 void logo_loader(){
     char buf[0x100] ; 
@@ -177,7 +196,7 @@ void init(){
     fclose(stderr);
     setvbuf(stdin, 0, 2, 0);
     setvbuf(stdout, 0, 2, 0);
-    alarm(120); //I'll set the alarm in set-up.sh so I can remove this.
+    alarm(1200); //I'll set the alarm in set-up.sh so I can remove this.
     logo_loader();
 }
 void menu(){
@@ -188,6 +207,7 @@ void menu(){
     puts("3. Challenge");
     puts("4. Leave");
     puts(" ========================= ");
+    printf("> ");
 }
 void key_list(){
     int tmp = 1 ; 
@@ -267,6 +287,7 @@ void key_menu(){
     puts("2. Show all Keys");
     puts("3. Return");
     puts(" ========================= ");
+    printf("> ");
 }
 void key_management(){
     while(1)
@@ -326,7 +347,9 @@ void decode(){
     if(c_len>0x2000 || c_len == 0)
         panic("Invalid data");
     uint8_t *c = secure_malloc(c_len);
+    printf("Ciphertext: ");
     c_len = readn(c,c_len);
+
     dec(c,c_len,KList[idx]);
     puts("\n[+] Decode Done");
 }
@@ -355,6 +378,7 @@ void init_candidates()
         fread(CD[i],L,1,fp);
         printf("Plaintext %d :\n",i);
         puts(CD[i]);
+        puts("");
     }
     close(urd);
     fclose(fp);
@@ -377,11 +401,9 @@ int singleR(){
     }
     return 0;
 }
-
 void challge(){
     if(Candidate_Init==0)
         init_candidates();
-    
     size_t win = 0 ; 
     for(int i = 0 ; i < XRound ; i++)
     {
@@ -391,7 +413,9 @@ void challge(){
     }
     if(win != XRound)
         return ;
-    puts("n132 >> I am pretty sure you are able to break this xor-variant, you can now challge more diffcult versions.");
+    else
+        panic("Try more");
+    puts("I am pretty sure you are able to break my enc scheme, you can now challge more diffcult versions.");
     puts("New Randomness:");
     scanf("%lf",&R);
 }
