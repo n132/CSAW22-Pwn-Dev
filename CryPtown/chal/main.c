@@ -67,9 +67,9 @@ void * secure_realloc(void * p, size_t size){
     return p ; 
 }
 int secure_open(const char * fname){
-    int f = open(fname,0)
+    int f = open(fname,0);
     if(f<0)
-        panic("Open error")
+        panic("Open error");
     return f;
 }
 key_struct * key_init(uint8_t *key,size_t kl){
@@ -326,30 +326,56 @@ void decode(){
 }
 char *CD[4]= {0}; // candidates
 int Candidate_Init = 0;
+uint8_t random_uint8(int fd, size_t down,size_t up){//return [down,up)
+    uint8_t res = urand_byte(fd);
+    while(res>=up || res<down){ 
+        res = urand_byte(fd);
+    }
+    return res;
+}
 void init_candidates()
 {
     int urd     = secure_open("/dev/urandom");
-    int f       = secure_open("./words_list");
+    FILE * fp   = fopen("./samples", "r");
+    if (fp == NULL)
+        panic("Fopen error");
+
     for(int i = 0 ; i<0x4; i++)
     {
-        CD[i] = secure_malloc(L);
-        size_t ct = 0 ;
-        while(ct<L)
-        {
-            urand_byte(urd) ....
-            //todo
-        }
+        CD[i] = secure_malloc(L+1);
+        memset(CD[i],0,L+1);
+        size_t idx = random_uint8(urd,0,100);
+        fseek(fp, idx*(L+1) , SEEK_SET);
+        fread(CD[i],L,1,fp);
+        printf("Plaintext %d :\n",i);
+        puts(CD[i]);
     }
+    close(urd);
+    fclose(fp);
+    Candidate_Init = 1;
+    return ;
 }
 int singleR(){
-
-    return 1;
+    int rnd = secure_open("/dev/urandom");
+    uint8_t ans = urand_byte(rnd)%4;
+    uint8_t key_len = random_uint8(rnd,1,0x18);
+    uint8_t * key = malloc(key_len);
+    for(int i =0 ; i<key_len; i++)
+        key[i] = urand_byte(rnd) ; 
+    key_struct *k = key_init(key,key_len);
+    enc(CD[ans],L,k);
+    puts("\nWhich one is the plaintext:");
+    size_t challger = readint();
+    if(challger == ans){
+        return 1;
+    }
+    return 0;
 }
 
 void challge(){
-    if(Candidate_Init==0){
+    if(Candidate_Init==0)
         init_candidates();
-    }
+    
     size_t win = 0 ; 
     for(int i = 0 ; i < XRound ; i++)
     {
