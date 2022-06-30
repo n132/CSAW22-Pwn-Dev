@@ -24,6 +24,7 @@ int readint(){
     return atoi(buf);
 }
 size_t readn(char *ptr, size_t len){
+        
   int tmp = read(0, ptr, len);
   if ( tmp <= 0 )
     panic("Read error");
@@ -47,9 +48,8 @@ typedef struct random_bytes
 typedef struct key_struct
 {
     random_bytes *rb;
-    // random character positions 2**16 may result uncontrolable result
-    uint8_t  *key;
     size_t key_len;
+    uint8_t  *key;
 } key_struct; 
 
 key_struct *KList[0x10];
@@ -109,9 +109,12 @@ void enc(uint8_t *plaintext, size_t plaintext_len , key_struct * k){
         {
             if(k->rb->cur >= k->rb->limit)
             {
-
-                k->rb->pos = secure_realloc(k->rb->pos,sizeof(size_t) * (k->rb->limit+0x20));
-                k->rb->limit +=0x20;
+                if( rct > plaintext_len)
+                    puts("Meaningless Setting, why don't you use OTP?"); 
+                else{
+                    k->rb->pos = secure_realloc(k->rb->pos,sizeof(size_t) * (k->rb->limit+0x20));
+                    k->rb->limit +=0x20;
+                }
             }
             k->rb->cur++;
             k->rb->pos[rct++] = ct ;
@@ -123,12 +126,13 @@ void enc(uint8_t *plaintext, size_t plaintext_len , key_struct * k){
         
         if(ct>=c_len)
         {
-            if(ct>=4*plaintext_len)
-                panic("Meaningless Setting");
+            if(ct>=2*plaintext_len)
+                puts("Meaningless Setting, why don't you use OTP?");
             e = secure_realloc(e,c_len*2);
-            c_len = c_len*2 ; 
+            c_len = c_len*2 ;
         }
     }
+    
     close(f);
     #ifdef DEBUG
         for(int i =0 ; i < ct;i++)
@@ -246,7 +250,7 @@ void key_gen(){
         panic("Invalid data");
     uint8_t * key = secure_malloc(key_len) ;
     printf("Key string: ");
-    readn(key,key_len);
+    key_len = readn(key,key_len);
     key_struct *k = key_init(key,key_len);
     if(key_insert(k)){
         puts("[-] Fail to Gen a New Key");
@@ -300,7 +304,9 @@ void encode(){
         panic("Too long to keep it secure"); //This is actually a hint!
     uint8_t *plaintext  = (uint8_t *)secure_malloc(p_len);
     printf("Plaintext: ");
-    readn(plaintext,p_len);
+    p_len = readn(plaintext,p_len);
+    if(p_len<=0x21)
+        return ;
     enc(plaintext,p_len,KList[idx]);
     puts("\n[+] Encode Done");
 }
@@ -320,7 +326,7 @@ void decode(){
     if(c_len>0x2000 || c_len == 0)
         panic("Invalid data");
     uint8_t *c = secure_malloc(c_len);
-    readn(c,c_len);
+    c_len = readn(c,c_len);
     dec(c,c_len,KList[idx]);
     puts("\n[+] Decode Done");
 }
@@ -357,16 +363,16 @@ void init_candidates()
 }
 int singleR(){
     int rnd = secure_open("/dev/urandom");
-    uint8_t ans = urand_byte(rnd)%4;
+    uint8_t orecal = urand_byte(rnd)%4;
     uint8_t key_len = random_uint8(rnd,1,0x18);
     uint8_t * key = malloc(key_len);
     for(int i =0 ; i<key_len; i++)
         key[i] = urand_byte(rnd) ; 
     key_struct *k = key_init(key,key_len);
-    enc(CD[ans],L,k);
+    enc(CD[orecal],L,k);
     puts("\nWhich one is the plaintext:");
-    size_t challger = readint();
-    if(challger == ans){
+    size_t ans = readint();
+    if(ans == orecal){
         return 1;
     }
     return 0;
@@ -386,8 +392,8 @@ void challge(){
     if(win != XRound)
         return ;
     puts("n132 >> I am pretty sure you are able to break this xor-variant, you can now challge more diffcult versions.");
-
-    //todo: a vul;
+    puts("New Randomness:");
+    scanf("%lf",&R);
 }
 void play_ground()
 {
@@ -412,12 +418,6 @@ void play_ground()
             exit(0);
         }
     }
-}
-void test(){
-    ;
-    // uint8_t p[]= {1,2,3,4,5,6,67};
-    // uint8_t k[]= {0};
-    // enc(p,k,sizeof(k));
 }
 int main()
 {
