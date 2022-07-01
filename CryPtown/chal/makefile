@@ -1,2 +1,2 @@
-main: main.c
-	gcc ./main.c ./base64.c -o ./main
+cryptown: cryptown.c base64.c utils.c
+	gcc ./cryptown.c ./base64.c ./utils.c -o ./cryptown

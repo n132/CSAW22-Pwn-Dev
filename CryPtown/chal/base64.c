@@ -207,14 +207,3 @@ int Base64encode(char *encoded, const char *string, int len)
     *p++ = '\0';
     return p - encoded;
 }
-// int test()
-// {
-//     char buf[0x1000]= {0};
-//     char input[0x1000] = {0};
-//     size_t res = read(0,input,0x1000);
-//     if(res>0x1000)
-//         return 1;
-//     Base64encode(buf,input,res);
-//     puts(buf);
-//     return 0;
-// }

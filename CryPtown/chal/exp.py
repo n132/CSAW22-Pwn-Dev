@@ -3,7 +3,7 @@ context.log_level='debug'
 context.arch='amd64'
 context.terminal = ['tmux', 'splitw', '-h', '-F' '#{pane_pid}', '-P']
 
-p=process('./main')
+p=process('./cryptown')
 ru 		= lambda a: 	p.readuntil(a)
 r 		= lambda n:		p.read(n)
 sla 	= lambda a,b: 	p.sendlineafter(a,b)

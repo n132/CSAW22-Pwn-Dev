@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "base64.h": "c"
+        "base64.h": "c",
+        "utils.h": "c"
     }
 }
