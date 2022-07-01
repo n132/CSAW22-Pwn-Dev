@@ -50,7 +50,7 @@ void enc(uint8_t *plaintext, size_t plaintext_len , key_struct * k){
         k->rb = secure_malloc(sizeof(random_bytes));
         memset(k->rb,0,sizeof(random_bytes));
     }
-    while( ct-rct != plaintext_len )
+    while( ct-rct < plaintext_len )
     {
         if(urand_byte(f)<= R * 0x100)
         {
@@ -59,8 +59,8 @@ void enc(uint8_t *plaintext, size_t plaintext_len , key_struct * k){
                 if( rct > plaintext_len)
                     puts("Meaningless Setting, why don't you use OTP?"); 
                 else{
-                    k->rb->pos = secure_realloc(k->rb->pos,sizeof(size_t) * (k->rb->limit+0x20));
                     k->rb->limit +=0x20;
+                    k->rb->pos = secure_realloc(k->rb->pos,sizeof(size_t) * k->rb->limit);
                 }
             }
             k->rb->cur++;
@@ -81,13 +81,6 @@ void enc(uint8_t *plaintext, size_t plaintext_len , key_struct * k){
     }
     
     close(f);
-    #ifdef DEBUG
-        for(int i =0 ; i < ct;i++)
-        {
-            printf("%d\n",e[i]);
-        }
-        return;
-    #endif
     puts("Ciphertext:");
     base64_output(e,ct);
     free(e);
@@ -116,8 +109,6 @@ void dec(uint8_t *ciphertext, size_t c_len, key_struct *key){
     }
     free(raw);
 }
-
-
 void menu(){
     puts(" =========================");
     puts("0. Key Management");
@@ -262,24 +253,19 @@ void decode(){
     }
     printf("The length of your ciphertext: ");
     size_t c_len = readint();
-    if(c_len>0x2000 || c_len == 0)
+    if(!c_len)
+        return; 
+    if(c_len>0x2000)
         panic("Invalid data");
-    uint8_t *c = secure_malloc(c_len);
+    uint8_t *c = secure_malloc(c_len+1);
     printf("Ciphertext: ");
     c_len = readn(c,c_len);
+    c[c_len] = 0 ; 
 
     dec(c,c_len,KList[idx]);
+    free(c);
     puts("\n[+] Decode Done");
 }
-
-uint8_t random_uint8(int fd, size_t down,size_t up){//return [down,up)
-    uint8_t res = urand_byte(fd);
-    while(res>=up || res<down){ 
-        res = urand_byte(fd);
-    }
-    return res;
-}
-
 int singleR(){
     int     rnd     = secure_open("/dev/urandom");
     uint8_t orecal  = urand_byte(rnd)%4;

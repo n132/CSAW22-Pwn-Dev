@@ -50,3 +50,10 @@ int     secure_open(const char * fname){
         panic("Open error");
     return f;
 }
+uint8_t random_uint8(int fd, size_t down,size_t up){//return [down,up)
+    uint8_t res = urand_byte(fd);
+    while(res>=up || res<down){ 
+        res = urand_byte(fd);
+    }
+    return res;
+}
