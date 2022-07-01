@@ -358,11 +358,15 @@ void init_challenge_plaintext()
     fclose(fp);
     return ;
 }
+void init_keytable(){
+    
+}
 void init(){
     fclose(stderr);
     setvbuf(stdin,  0, 2, 0);
     setvbuf(stdout, 0, 2, 0);
     init_challenge_plaintext();
+    init_keytable();
     logo_loader();
 }
 int main(){
