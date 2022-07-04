@@ -8,10 +8,10 @@ typedef struct node{
 } node;
 
 typedef struct inode{
-    size_t type; // 1 -> dir 0-> file
+    size_t type; // 0 -> dir 1-> file
     char * name;
     struct inode *ptr[0x10];
-    char * content; 
+    char * content;
 } inode;
 
 node * variables = NULL;
@@ -30,7 +30,7 @@ void insert(inode * dir,inode * item){
             return ;
         }
     }
-    exit(1);   
+    exit(1);
 }
 inode * pwd(){
     return cur_dir;
@@ -62,32 +62,33 @@ void inode_init(int type,char *cmd)
             p->ptr[i]=0;
         p->content = 0;
         inode *cur = pwd();
+        printf("%s", cmd);
         insert(cur,p);
-        return ; 
+        return ;
     }
     exit(1);
 }
 void mkdir(char *cmd){
-    if(!strcpy("",cmd))
-        return ;
+    if(!strcmp("",cmd))
+        exit(-1);
     inode_init(0,cmd);
     return ;
 }
 void touch(char *cmd)
 {
-    if(!strcpy("",cmd))
+    if(!strcmp("",cmd))
         return ;
     inode_init(1,cmd);
     return ;
 }
 void rm_file(char *name, inode *cur_path){
-    if(!strcpy("",name))
+    if(!strcmp("",name))
         return ;
     inode *cur = cur_path;
     for(int i=0;i<0x10;i++)
     {
         if(cur->ptr[i]==0 || cur->ptr[i]->type==0)
-            continue; 
+            continue;
 
         if(!strcmp(name,cur->ptr[i]->name))
         {
@@ -98,8 +99,8 @@ void rm_file(char *name, inode *cur_path){
             free(target);
             cur->ptr[i] = 0;
 
-            return ; 
-        }  
+            return ;
+        }
     }
     return ;
 }
@@ -107,14 +108,14 @@ void rm(char *cmd){
     rm_file(cmd,pwd());
 }
 void rm_dir(char *name, inode *cur_path){
-    if(!strcpy("",name))
+    if(!strcmp("",name))
         return ;
     inode *cur = cur_path;
     int i = 0;
     for(i = 0;i<0x10;i++)
     {
         if(cur->ptr[i]==0 || cur->ptr[i]->type==1)
-            continue; 
+            continue;
         if(!strcmp(name,cur->ptr[i]->name))
         {
             cur = cur->ptr[i];
@@ -127,7 +128,7 @@ void rm_dir(char *name, inode *cur_path){
     for(int i=0;i<0x10;i++)
     {
         if(cur->ptr[i]==0)
-            continue; 
+            continue;
         if(cur->ptr[i]->type==1)
             rm_file(cur->ptr[i]->name,cur);
         else if(cur->ptr[i]->type==1)
@@ -150,23 +151,25 @@ void ls_dir(inode * target)
     }
     puts("");
 }
+
+//TODO: why need " " after ls; parent directory doesnt work
 void ls(char *cmd){
     inode * cur = pwd();
     inode * target = 0;
-    if(!strcpy("",cmd))
+    if(!strcmp("",cmd))
         target = pwd();
     else
     {
         for(int i=0;i<0x10;i++)
         {
             if(cur->ptr[i]==0 || cur->ptr[i]->type==1)
-                continue; 
+                continue;
 
             if(!strcmp(cmd,cur->ptr[i]->name))
             {
                 target = cur->ptr[i];
                 break;
-            }  
+            }
         }
     }
     if(target==0)
@@ -184,7 +187,7 @@ void declare(char *key,char *val)
     ptr->key = (char *)malloc(key_len+1);
     ptr->val = (char *)malloc(val_len+1);
     if(ptr->key <= 0 || ptr->val <= 0)
-    exit(1);
+        exit(1);
     memset(ptr->key,0,key_len+1);
     memset(ptr->val,0,val_len+1);
     strcpy(ptr->key,key);
@@ -197,6 +200,13 @@ void echo(char *c)
 
     if(!strncmp(c,"$",1))
     {
+        // TODO: write to file
+        if(strstr(c, " > "))
+        {
+            printf("%s\n", ">! unfinished function");
+            inode * dir = pwd();
+
+        }
         c = c+1;
         node * ptr = variables;
         while(ptr)
@@ -204,13 +214,49 @@ void echo(char *c)
             if(!strcmp(c,ptr->key))
             {
                 printf("%s\n",ptr->val);
-
                 return ;
             }
             ptr = ptr->next;
         }
     }
-    else{
+
+    else if(strstr(c, " > "))
+    {
+
+        //write to file
+        // printf("%s",c);
+        char * pos = strstr(c, " > ");
+        * pos = 0;
+
+        char * content = c;
+        char * dir_name = pos + 3;
+        printf("content: %s\n", content);
+        printf("filename: %s\n", dir_name);
+
+        inode * cur = pwd();
+
+
+        //TODO: make findfile into function
+        for(int i=0;i<0x10;i++)
+        {
+            if(cur->ptr[i]==0 || cur->ptr[i]->type==0)
+                continue;
+            if(!strcmp(dir_name,cur->ptr[i]->name))
+            {
+                cur = cur->ptr[i];
+                break;
+            }
+        }
+
+        printf("Found file: %s/n", cur->name);
+        cur->content = content;
+        printf("Filecontent: %s\n", cur->content);
+
+
+    }
+
+    else
+    {
         printf("%s",c);
     }
     return ;
@@ -239,7 +285,7 @@ void unset(char *c)
         ptr = ptr->next;
     }
 }
-void sh4ll() 
+void sh4ll()
 {
     size_t buffer_size = 0x400;
     char* cmd = (char *)malloc(buffer_size);
@@ -254,6 +300,7 @@ void sh4ll()
         *tmp = 0;
     }
     char* pos = strstr(cmd," ");
+    //printf("%s", pos);
     if(pos == NULL)
     {
         char* pos = strstr(cmd,"=");
