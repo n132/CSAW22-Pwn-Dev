@@ -227,15 +227,11 @@ void echo(char *c)
         // printf("%s",c);
         char * pos = strstr(c, " > ");
         * pos = 0;
-
         char * content = c;
         char * dir_name = pos + 3;
         printf("content: %s\n", content);
         printf("filename: %s\n", dir_name);
-
         inode * cur = pwd();
-
-
         //TODO: make findfile into function
         for(int i=0;i<0x10;i++)
         {
@@ -251,13 +247,10 @@ void echo(char *c)
         printf("Found file: %s/n", cur->name);
         cur->content = content;
         printf("Filecontent: %s\n", cur->content);
-
-
     }
-
     else
     {
-        printf("%s",c);
+        printf("%s\n",c);
     }
     return ;
 }
@@ -300,13 +293,12 @@ void sh4ll()
         *tmp = 0;
     }
     char* pos = strstr(cmd," ");
-    //printf("%s", pos);
     if(pos == NULL)
     {
         char* pos = strstr(cmd,"=");
         if(pos==NULL)
         {
-            printf("command not found: %s",cmd);
+            printf("command not found: %s\n",cmd);
         }
         else{
             *pos = 0 ;
@@ -358,11 +350,34 @@ void init_home()
     home->content = 0;
     cur_dir = home;
 }
-void init()
+void    panic(const char *s)
 {
-    ;
+    puts(s);
+    exit(1);
 }
-void usage(){};
+int     secure_open(const char * fname){
+    int f = open(fname,0);
+    if(f<0)
+        panic("Open error");
+    return f;
+}
+void logo_loader(){
+    char buf[0x500] ; 
+    memset(buf,0,sizeof(buf));
+    int f =  secure_open("./logo");
+    size_t res = read(f,buf,sizeof(buf));
+    if(res>=sizeof(buf))
+        panic("Read error");
+    puts(buf);
+}
+void init(){
+    fclose(stderr);
+    setvbuf(stdin,  0, 2, 0);
+    setvbuf(stdout, 0, 2, 0);
+    logo_loader();
+}
+void usage(){;
+}
 void shell()
 {
     while(1)
