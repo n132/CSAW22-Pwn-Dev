@@ -36,6 +36,8 @@ inode * pwd(){
     return cur_dir;
 }
 void cd(char *dir_name){
+    //TODO: cd ..
+    // Do we need a path to 
     if(!strcmp("",dir_name))
         cur_dir = home;
     else{
@@ -221,8 +223,6 @@ void echo(char *c)
     else if(strstr(c, " > "))
     {
 
-        //write to file
-        // printf("%s",c);
         char * pos = strstr(c, " > ");
         * pos = 0;
         char * content = c;
@@ -298,6 +298,8 @@ void sh4ll()
         {
             if(!strcmp("ls",cmd))
                 ls("");
+            else if(!strcmp("cd",cmd))
+                cd("");
             else{
                 printf("command not found: %s\n",cmd);
             }
@@ -352,12 +354,12 @@ void init_home()
     home->content = 0;
     cur_dir = home;
 }
-void    panic(const char *s)
+void panic(const char *s)
 {
     puts(s);
     exit(1);
 }
-int     secure_open(const char * fname){
+int  secure_open(const char * fname){
     int f = open(fname,0);
     if(f<0)
         panic("Open error");
