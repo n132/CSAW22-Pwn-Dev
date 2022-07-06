@@ -1,6 +1,6 @@
-#include<string.h>
-#include<stdio.h>
-#include<stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 typedef struct node{
     char *key;
     char *val;
@@ -281,6 +281,9 @@ void show_pwd(){
     printf("%s\n",cur->name);
     return;
 }
+void cat(){
+    ;
+}
 void sh4ll()
 {
     size_t buffer_size = 0x400;
@@ -309,9 +312,8 @@ void sh4ll()
             else if(!strcmp("exit",cmd))
                 exit(0);
             else{
-                printf("command not found: %s\n",cmd);
+                printf("Command not found: %s\n",cmd);
             }
-            
         }
         else{
             *pos = 0 ;
@@ -319,7 +321,6 @@ void sh4ll()
         }
     }
     else{
-
         * pos = 0;
         if(!strcmp("echo",cmd)){
             echo(pos+1);
@@ -351,8 +352,11 @@ void sh4ll()
         else if(!strcmp("exit",cmd)){
             exit(0);
         }
+        else if(!strcmp("cat",cmd)){
+            cat(pos+1);
+        }
         else{
-            printf("command not found: %s\n",cmd);
+            printf("Command not found: %s\n",cmd);
         }
     }
     free(cmd);
