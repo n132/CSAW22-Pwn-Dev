@@ -17,8 +17,14 @@ typedef struct inode{
 node * variables = NULL;
 inode * home = NULL;
 inode * cur_dir = NULL;
-int check_name()
+
+int check_name( char * c)
 {
+    for(char *i = c ; *i != 0 ; i++)
+    {
+        if(*i < 0x30 || *i > 0x7f)
+            return 0 ; 
+    }    
     return 1;
 }
 void insert(inode * dir,inode * item){
@@ -158,7 +164,6 @@ void ls_dir(inode * target)
     }
     puts("");
 }
-
 void ls(char *cmd){
     inode * cur = pwd();
     inode * target = 0;
@@ -221,7 +226,7 @@ void echo(char *c)
     filename = strstr(c, " > ");
 
     if(filename){
-        * filename = 0;
+        *filename = 0;
         filename+=3;
         target  = lookfor(filename);
         if(target==0)
