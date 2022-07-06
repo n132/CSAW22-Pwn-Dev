@@ -14,6 +14,10 @@ typedef struct inode{
     char * content;
 } inode;
 
+typedef struct pnode{
+    inode * ptr;
+    struct pnode * next;
+} pnode;
 node * variables = NULL;
 inode * home = NULL;
 inode * cur_dir = NULL;
@@ -41,11 +45,40 @@ void insert(inode * dir,inode * item){
 inode * pwd(){
     return cur_dir;
 }
+pnode * PATH  = 0 ;
+pnode* new_pnode(){
+    pnode *tmp = (pnode *)malloc(sizeof(pnode));
+    tmp->next = 0 ;
+    tmp->ptr = pwd();
+    return tmp;
+}
+void init_path(){
+    if(PATH)
+        return ; 
+    PATH = new_pnode();
+}
+void push_current_pnode(){
+    pnode * tmp = PATH;
+    while(tmp->next)
+        tmp = tmp->next;
+    tmp->next = new_pnode();
+} 
+
 void cd(char *dir_name){
-    //TODO: cd ..
-    // Do we need a path to 
+    //TODO: check the pnode machenism
     if(!strcmp("",dir_name))
         cur_dir = home;
+    else if(!strcmp("..",dir_name))
+    {
+        pnode * tmp = PATH;
+        pnode * pre = 0;
+        while(tmp->next)
+        {
+            pre = tmp;
+            tmp = tmp->next;
+        }
+        cur_dir = pre->ptr;
+    }
     else{
         inode *cur = pwd();
         for(int i=0;i<0x10;i++)
@@ -55,8 +88,10 @@ void cd(char *dir_name){
             if(!strcmp(dir_name,cur->ptr[i]->name))
             {
                 cur_dir = cur->ptr[i];
+                push_current_pnode();
             }
         }
+
     }
 }
 inode * inode_init(int type,char *cmd)
@@ -404,6 +439,7 @@ void init_home()
         home->ptr[i]=0;
     home->content = 0;
     cur_dir = home;
+    init_path();
 }
 void panic(const char *s)
 {
@@ -431,8 +467,6 @@ void init(){
     setvbuf(stdout, 0, 2, 0);
     logo_loader();
 }
-void usage(){;
-}
 void shell()
 {
     while(1)
@@ -445,6 +479,5 @@ int main()
 {
     init();
     init_home();
-    usage();
     shell();
 }
