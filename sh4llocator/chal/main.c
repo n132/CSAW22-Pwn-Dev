@@ -53,7 +53,7 @@ void cd(char *dir_name){
         }
     }
 }
-void inode_init(int type,char *cmd)
+inode * inode_init(int type,char *cmd)
 {
     inode * p = (inode *)malloc(sizeof(inode));
     p->type = type;
@@ -65,7 +65,7 @@ void inode_init(int type,char *cmd)
         p->content = 0;
         inode *cur = pwd();
         insert(cur,p);
-        return ;
+        return p;
     }
     exit(1);
 }
@@ -75,12 +75,11 @@ void mkdir(char *cmd){
     inode_init(0,cmd);
     return ;
 }
-void touch(char *cmd)
+inode * touch(char *cmd)
 {
     if(!strcmp("",cmd))
-        return ;
-    inode_init(1,cmd);
-    return ;
+        exit(0);
+    return inode_init(1,cmd);
 }
 void rm_file(char *name, inode *cur_path){
     if(!strcmp("",name))
@@ -195,62 +194,67 @@ void declare(char *key,char *val)
     ptr->next = variables;
     variables = ptr;
 }
+inode * lookfor(char *filename)
+{
+    inode * cur = pwd();
+    for(int i=0;i<0x10;i++)
+    {
+        if(cur->ptr[i]==0 || cur->ptr[i]->type==0)
+            continue;
+        if(!strcmp(filename,cur->ptr[i]->name))
+            return cur->ptr[i];
+        
+    }
+    return 0 ; 
+}
 void echo(char *c)
 {
+    char *filename = 0;
+    inode * target = 0 ;
+    filename = strstr(c, " > ");
 
-    if(!strncmp(c,"$",1))
+    if(filename){
+        * filename = 0;
+        filename+=3;
+        target  = lookfor(filename);
+        if(target==0)
+            target = touch(filename);
+
+    }
+    if(c[0] == 0x24) // $ echo a varible, -> to a file or to stdout
     {
-        // TODO: write to file
-        if(strstr(c, " > "))
-        {
-            printf("%s\n", ">! unfinished function");
-            inode * dir = pwd();
-
-        }
-        c = c+1;
         node * ptr = variables;
         while(ptr)
         {
-            if(!strcmp(c,ptr->key))
+            if(!strcmp(c+1,ptr->key))
             {
-                printf("%s\n",ptr->val);
+                if(target)
+                {
+                    if(target->content)
+                        free(target->content);
+                    target->content = strdup(ptr->val);
+                }
+                else
+                    printf("%s\n",ptr->val);
                 return ;
             }
             ptr = ptr->next;
         }
+        if(!target)
+            puts("");
     }
-
-    else if(strstr(c, " > "))
+    else // echo a string > to a file or to stdout
     {
-
-        char * pos = strstr(c, " > ");
-        * pos = 0;
-        char * content = c;
-        char * dir_name = pos + 3;
-        printf("content: %s\n", content);
-        printf("filename: %s\n", dir_name);
-        inode * cur = pwd();
-        //TODO: make findfile into function
-        for(int i=0;i<0x10;i++)
+        if(target)
         {
-            if(cur->ptr[i]==0 || cur->ptr[i]->type==0)
-                continue;
-            if(!strcmp(dir_name,cur->ptr[i]->name))
-            {
-                cur = cur->ptr[i];
-                break;
-            }
+            if(target->content)
+                free(target->content);
+            target->content = strdup(c);
         }
-
-        printf("Found file: %s/n", cur->name);
-        cur->content = content;
-        printf("Filecontent: %s\n", cur->content);
+        else
+            printf("%s\n",c);
+        return ;
     }
-    else
-    {
-        printf("%s\n",c);
-    }
-    return ;
 }
 void unset(char *c)
 {
