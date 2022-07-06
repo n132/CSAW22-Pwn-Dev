@@ -281,8 +281,23 @@ void show_pwd(){
     printf("%s\n",cur->name);
     return;
 }
-void cat(){
-    ;
+void cat(char *filename){
+    inode * cur = pwd();
+    inode * target = 0;
+    
+    target = pwd();
+    for(int i=0;i<0x10;i++)
+    {
+        if(cur->ptr[i]==0 || cur->ptr[i]->type==0)
+            continue;
+        if(!strcmp(filename,cur->ptr[i]->name))
+        {
+            printf("%s\n",cur->ptr[i]->content);
+            return ; 
+        }
+    }
+    printf("File doesn't exist\n");
+
 }
 void sh4ll()
 {
