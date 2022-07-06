@@ -276,6 +276,11 @@ void unset(char *c)
         ptr = ptr->next;
     }
 }
+void show_pwd(){
+    inode * cur = pwd();
+    printf("%s\n",cur->name);
+    return;
+}
 void sh4ll()
 {
     size_t buffer_size = 0x400;
@@ -287,9 +292,8 @@ void sh4ll()
 
     char* tmp = strstr(cmd,"\n");
     if(tmp!=0)
-    {
         *tmp = 0;
-    }
+    
     char* pos = strstr(cmd," ");
     if( pos == NULL )
     {
@@ -300,9 +304,14 @@ void sh4ll()
                 ls("");
             else if(!strcmp("cd",cmd))
                 cd("");
+            else if(!strcmp("pwd",cmd))
+                show_pwd();
+            else if(!strcmp("exit",cmd))
+                exit(0);
             else{
                 printf("command not found: %s\n",cmd);
             }
+            
         }
         else{
             *pos = 0 ;
@@ -310,6 +319,7 @@ void sh4ll()
         }
     }
     else{
+
         * pos = 0;
         if(!strcmp("echo",cmd)){
             echo(pos+1);
@@ -334,6 +344,12 @@ void sh4ll()
         }
         else if(!strcmp("cd",cmd)){
             cd(pos+1);
+        }
+        else if(!strcmp("pwd",cmd)){
+            show_pwd();
+        }
+        else if(!strcmp("exit",cmd)){
+            exit(0);
         }
         else{
             printf("command not found: %s\n",cmd);
