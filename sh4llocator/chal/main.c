@@ -62,7 +62,6 @@ void inode_init(int type,char *cmd)
             p->ptr[i]=0;
         p->content = 0;
         inode *cur = pwd();
-        printf("%s", cmd);
         insert(cur,p);
         return ;
     }
@@ -152,7 +151,6 @@ void ls_dir(inode * target)
     puts("");
 }
 
-//TODO: why need " " after ls; parent directory doesnt work
 void ls(char *cmd){
     inode * cur = pwd();
     inode * target = 0;
@@ -293,12 +291,16 @@ void sh4ll()
         *tmp = 0;
     }
     char* pos = strstr(cmd," ");
-    if(pos == NULL)
+    if( pos == NULL )
     {
         char* pos = strstr(cmd,"=");
         if(pos==NULL)
         {
-            printf("command not found: %s\n",cmd);
+            if(!strcmp("ls",cmd))
+                ls("");
+            else{
+                printf("command not found: %s\n",cmd);
+            }
         }
         else{
             *pos = 0 ;
@@ -332,7 +334,7 @@ void sh4ll()
             cd(pos+1);
         }
         else{
-            printf("command not found: %s",cmd);
+            printf("command not found: %s\n",cmd);
         }
     }
     free(cmd);
