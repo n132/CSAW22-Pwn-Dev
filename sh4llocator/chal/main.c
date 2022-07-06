@@ -62,7 +62,8 @@ inode * inode_init(int type,char *cmd)
         p->name = strdup(cmd);
         for(int i=0;i<0x10;i++)
             p->ptr[i]=0;
-        p->content = 0;
+        p->content = malloc(0x18);
+        memset(p->content,0,0x18);
         inode *cur = pwd();
         insert(cur,p);
         return p;
