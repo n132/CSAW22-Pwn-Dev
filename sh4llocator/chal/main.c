@@ -27,7 +27,8 @@ int check_name( char * c)
     for(char *i = c ; *i != 0 ; i++)
     {
         if(*i < 0x30 || *i > 0x7f)
-            return 0 ; 
+            if(*i != 0x2e)
+                exit(1);
     }    
     return 1;
 }

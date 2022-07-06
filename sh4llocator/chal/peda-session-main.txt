@@ -1,2 +1,2 @@
-break *0x0000555555555295
+break exit
 
