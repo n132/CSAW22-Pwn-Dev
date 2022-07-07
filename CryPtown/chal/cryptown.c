@@ -8,9 +8,7 @@
 #include "cryptown.h"
 #include "utils.h"
 
-
-
-key_struct *KList[] = 0;
+key_struct *KList = 0;
 size_t KNum = 0 ; 
 void base64_output(char *buf,size_t len){
     size_t size = Base64encode_len(len);
@@ -126,18 +124,21 @@ void key_list(){
     if( !KNum )
         puts("\tNone");
     puts(" ************************* ");
-    if(ct == KNUM)
+    if(ct == KNum)
     {
         KNum *=2 ; 
-        KList = secure_realloc(KNum*sizeof(key_struct));
+        KList = secure_realloc(KList, KNum*sizeof(key_struct));
     }
 }
 void key_del(){
     key_list();
     printf("Which key: ");
     size_t idx = readint() ;
-    if(idx >= KNum || !KList[idx].inuse)
-        panic("Invalid data");
+    if(idx >= KNum || !KList[idx].in_use)
+    {
+        puts("[-] Improper Index");
+        return ; 
+    }
     if(KList[idx].rb)
     {
         free(KList[idx].rb);
@@ -149,7 +150,7 @@ void key_del(){
         KList[idx].key =0 ; 
     }
     KList[idx].key_len = 0 ; 
-    KList[idx].inuse = 0 ;
+    KList[idx].in_use = 0 ;
     puts("[+] Key Del Done");
 }
 void key_gen(){
@@ -158,9 +159,9 @@ void key_gen(){
     size_t key_len = 0;
     printf("Index: ");
     idx = readint();
-    if(idx>=KNum || KList[idx].in_use)
+    if(idx >= KNum || KList[idx].in_use)
     {
-        puts("[-] Fail to Gen a New Key");
+        puts("[-] Improper Index");
         return ; 
     }
     printf("Size: ");
@@ -175,7 +176,7 @@ void key_gen(){
     KList[idx].rb = secure_malloc(sizeof(random_bytes));
     memset(KList[idx].rb,0,sizeof(random_bytes));
     KList[idx].key = key;
-    KList[idx].key_len = kl;
+    KList[idx].key_len = key_len;
     KList[idx].in_use = 1;
     puts("[+] Key Gen Done");
 }
@@ -212,10 +213,11 @@ void encode(){
     key_list();
     printf("Which key do you want to use: ");
     size_t idx = readint();
-    if(idx >= 0x10)
-        panic("Invalid data");
-    if(!KList[idx])
-        panic("Invalid data");
+    if(idx >= KNum || KList[idx].in_use)
+    {
+        puts("[-] Improper Index");
+        return ; 
+    }
     printf("The length of your plaintext: ");
     size_t p_len = readint();
     if(!p_len)
@@ -227,18 +229,16 @@ void encode(){
     p_len = readn(plaintext,p_len);
     if(p_len<=0x21)
         return ;
-    enc(plaintext,p_len,KList[idx]);
+    enc(plaintext,p_len,&KList[idx]);
     puts("\n[+] Encode Done");
 }
 void decode(){
     key_list();
     printf("Which key do you want to use: ");
     size_t idx = readint();
-    if(idx >= 0x10)
-        panic("Invalid data");
-    if(KList[idx]==0 || KList[idx]->rb==0 || KList[idx]->rb->pos==0)
+    if(idx >= KNum || KList[idx].in_use || KList[idx].rb==0 || KList[idx].rb->pos==0)
     {
-        puts("Invalid data");
+        puts("[-] Improper Index");
         return ; 
     }
     printf("The length of your ciphertext: ");
@@ -252,7 +252,7 @@ void decode(){
     c_len = readn(c,c_len);
     c[c_len] = 0 ; 
 
-    dec(c,c_len,KList[idx]);
+    dec(c,c_len,&KList[idx]);
     free(c);
     puts("\n[+] Decode Done");
 }
@@ -268,8 +268,8 @@ int singleR(){
     key_struct *k  =  secure_malloc(sizeof(key_struct));
     k->key = key ; 
     k->key_len = key_len;
-    k->rb = secure_malloc(sizeof(random_bytes))
-    memset(KList[idx].rb,0,sizeof(random_bytes));
+    k->rb = secure_malloc(sizeof(random_bytes));
+    memset(k->rb,0,sizeof(random_bytes));
     k->in_use = 1;
 
     enc(challenge_plaintext[orecal],L,k);
