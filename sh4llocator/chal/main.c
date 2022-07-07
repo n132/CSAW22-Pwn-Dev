@@ -18,6 +18,7 @@ typedef struct pnode{
     inode * ptr;
     struct pnode * next;
 } pnode;
+
 node * variables = NULL;
 inode * home = NULL;
 inode * cur_dir = NULL;
