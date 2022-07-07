@@ -13,4 +13,5 @@ typedef struct key_struct{
     random_bytes *rb;
     size_t key_len;
     uint8_t  *key;
+    size_t in_use;
 } key_struct; 

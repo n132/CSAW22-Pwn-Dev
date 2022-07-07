@@ -8,7 +8,10 @@
 #include "cryptown.h"
 #include "utils.h"
 
-key_struct *KList[0x10];
+
+
+key_struct *KList[] = 0;
+size_t KNum = 0 ; 
 void base64_output(char *buf,size_t len){
     size_t size = Base64encode_len(len);
     char *tmp = secure_malloc(size);
@@ -19,17 +22,7 @@ void base64_output(char *buf,size_t len){
     puts(tmp);
     free(tmp);
 }
-key_struct * key_init(uint8_t *key,size_t kl){
-    key_struct *k = 0 ;
-    k       = secure_malloc(sizeof(key_struct));
-    k->rb   = secure_malloc(sizeof(random_bytes));
-    k->rb->pos = 0;
-    k->rb->cur = 0;
-    k->rb->limit = 0;
-    k->key = key;
-    k->key_len = kl;
-    return k; 
-}
+
 void enc(uint8_t *plaintext, size_t plaintext_len , key_struct * k){
     int f       = 0;
     uint8_t * p = 0;
@@ -120,59 +113,56 @@ void menu(){
     printf("> ");
 }
 void key_list(){
-    int tmp = 1 ; 
+    int ct = 0 ; 
     puts(" ************************* ");
-    
-    for(int i = 0 ; i<0x10; i++)
+    for(int i = 0 ; i< KNum; i++)
     {
-        if(KList[i])
+        if(KList[i].in_use)
         {
-            printf(" Key[ %d ], len = %lu \n",i,KList[i]->key_len);
-            tmp = 0;
+            printf(" Key[ %d ], len = %lu \n", i , KList[i].key_len);
+            ct++;
         }
     }
-    if(tmp==1)
+    if( !KNum )
         puts("\tNone");
-
     puts(" ************************* ");
-}
-int key_insert(key_struct * k){
-    if(!k)
-        panic("Invalid data");
-    for(int i = 0 ; i < 0x10 ; i++)
+    if(ct == KNUM)
     {
-        if(!KList[i])
-        {
-            KList[i] = k ; 
-            return 0;
-        }
+        KNum *=2 ; 
+        KList = secure_realloc(KNum*sizeof(key_struct));
     }
-    return 1; 
-}
-void key_destructor(key_struct * k){
-    if(!k)
-        return;
-    if(k->rb)
-        free(k->rb);
-    free(k->key);
-    free(k);
-    return;
 }
 void key_del(){
     key_list();
     printf("Which key: ");
     size_t idx = readint() ;
-    if(idx >= 0x10)
+    if(idx >= KNum || !KList[idx].inuse)
         panic("Invalid data");
-    if(!KList[idx])
-        panic("Invalid data");
-    key_destructor(KList[idx]);
-    KList[idx] = 0 ;
+    if(KList[idx].rb)
+    {
+        free(KList[idx].rb);
+        KList[idx].rb = 0 ; 
+    }
+    if(KList[idx].key)
+    {
+        free(KList[idx].key);
+        KList[idx].key =0 ; 
+    }
+    KList[idx].key_len = 0 ; 
+    KList[idx].inuse = 0 ;
     puts("[+] Key Del Done");
-    
 }
 void key_gen(){
+    key_list();
+    size_t idx = 0 ; 
     size_t key_len = 0;
+    printf("Index: ");
+    idx = readint();
+    if(idx>=KNum || KList[idx].in_use)
+    {
+        puts("[-] Fail to Gen a New Key");
+        return ; 
+    }
     printf("Size: ");
     key_len = readint() ;
     if(key_len == 0  || key_len > 0x18)
@@ -180,14 +170,14 @@ void key_gen(){
     uint8_t * key = secure_malloc(key_len) ;
     printf("Key string: ");
     key_len = readn(key,key_len);
-    key_struct *k = key_init(key,key_len);
-    if(key_insert(k)){
-        puts("[-] Fail to Gen a New Key");
-        key_destructor(k);
-    }
-    else{
-        puts("[+] Key Gen Done");
-    }
+    
+    
+    KList[idx].rb = secure_malloc(sizeof(random_bytes));
+    memset(KList[idx].rb,0,sizeof(random_bytes));
+    KList[idx].key = key;
+    KList[idx].key_len = kl;
+    KList[idx].in_use = 1;
+    puts("[+] Key Gen Done");
 }
 void key_menu(){
     puts(" =========================");
@@ -204,17 +194,17 @@ void key_management(){
         key_menu();
         switch (readint())
         {
-        case 0:
-            key_gen();
-            break;
-        case 1:
-            key_del();
-            break;
-        case 2:
-            key_list();
-            break;
-        default:
-            return ;
+            case 0:
+                key_gen();
+                break;
+            case 1:
+                key_del();
+                break;
+            case 2:
+                key_list();
+                break;
+            default:
+                return ;
         }
     }
 }
@@ -275,8 +265,20 @@ int singleR(){
         key[i] = urand_byte(rnd) ;
     key[key_len] = 0 ; 
 
-    key_struct *k = key_init(key,key_len);
+    key_struct *k  =  secure_malloc(sizeof(key_struct));
+    k->key = key ; 
+    k->key_len = key_len;
+    k->rb = secure_malloc(sizeof(random_bytes))
+    memset(KList[idx].rb,0,sizeof(random_bytes));
+    k->in_use = 1;
+
     enc(challenge_plaintext[orecal],L,k);
+    
+    free(k->rb);
+    free(k);
+    free(key);
+    close(rnd);
+
     puts("\nWhich one is the plaintext:");
     size_t ans = readint();
     if(ans == orecal){
@@ -359,7 +361,8 @@ void init_challenge_plaintext()
     return ;
 }
 void init_keytable(){
-    
+    KNum  = 0x10;
+    KList = secure_malloc(KNum * sizeof(key_struct));
 }
 void init(){
     fclose(stderr);
