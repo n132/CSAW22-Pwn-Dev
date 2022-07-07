@@ -50,7 +50,7 @@ void enc(uint8_t *plaintext, size_t plaintext_len , key_struct * k){
                     puts("Meaningless Setting, why don't you use OTP?"); 
                 else{
                     k->rb->limit +=0x20;
-                    k->rb->pos = secure_realloc(k->rb->pos,sizeof(size_t) * k->rb->limit);
+                    k->rb->pos = secure_realloc(k->rb->pos,sizeof(short) * k->rb->limit);
                 }
             }
             k->rb->cur++;
@@ -65,8 +65,9 @@ void enc(uint8_t *plaintext, size_t plaintext_len , key_struct * k){
         {
             if(ct>=2*plaintext_len)
                 puts("Meaningless Setting, why don't you use OTP?");
-            e = secure_realloc(e,e_len_max*2);
             e_len_max *= 2 ;
+            e = secure_realloc(e,e_len_max*2);
+            
         }
     }
     
@@ -109,20 +110,23 @@ void menu(){
     puts(" ========================= ");
     printf("> ");
 }
-void key_list(){
+void key_list(int flag){
     int ct = 0 ; 
-    puts(" ************************* ");
+    if(flag)
+        puts(" ************************* ");
     for(int i = 0 ; i< KNum; i++)
     {
         if(KList[i].in_use)
         {
-            printf(" Key[ %d ], len = %lu \n", i , KList[i].key_len);
+            if(flag)
+                printf(" Key[ %d ], len = %lu \n", i , KList[i].key_len);
             ct++;
         }
     }
-    if( !KNum )
+    if( !ct  && flag)
         puts("\tNone");
-    puts(" ************************* ");
+    if(flag)
+        puts(" ************************* ");
     if(ct == KNum)
     {
         KNum *=2 ; 
@@ -130,7 +134,6 @@ void key_list(){
     }
 }
 void key_edit(){
-    key_list();
     printf("Chose a key: ");
     size_t idx = readint() ;
     if(idx >= KNum || !KList[idx].in_use)
@@ -150,7 +153,6 @@ void key_edit(){
     return ; 
 }
 void key_del(){
-    key_list();
     printf("Chose a key: ");
     size_t idx = readint() ;
     if(idx >= KNum || !KList[idx].in_use)
@@ -175,7 +177,7 @@ void key_del(){
     puts("[+] Key Del Done");
 }
 void key_gen(){
-    key_list();
+    key_list(0);
     size_t idx = 0 ; 
     size_t key_len = 0;
     printf("Index: ");
@@ -187,7 +189,7 @@ void key_gen(){
     }
     printf("Size: ");
     key_len = readint() ;
-    if(key_len == 0  || key_len > 0x18)
+    if(key_len == 0  || key_len > 26)
         panic("Invalid data");
     uint8_t * key = secure_malloc(key_len) ;
     printf("Key string: ");
@@ -206,7 +208,8 @@ void key_menu(){
     puts("0. Add a Key");
     puts("1. Del a Key");
     puts("2. Show all Keys");
-    puts("3. Return");
+    puts("3. Edit a Key");
+    puts("4. Return");
     puts(" ========================= ");
     printf("> ");
 }
@@ -223,7 +226,7 @@ void key_management(){
                 key_del();
                 break;
             case 2:
-                key_list();
+                key_list(1);
                 break;
             case 3:
                 key_edit();
@@ -234,10 +237,10 @@ void key_management(){
     }
 }
 void encode(){
-    key_list();
+    key_list(1);
     printf("Which key do you want to use: ");
     size_t idx = readint();
-    if(idx >= KNum || KList[idx].in_use)
+    if(idx >= KNum || !KList[idx].in_use)
     {
         puts("[-] Improper Index");
         return ; 
@@ -257,7 +260,7 @@ void encode(){
     puts("\n[+] Encode Done");
 }
 void decode(){
-    key_list();
+    key_list(1);
     printf("Which key do you want to use: ");
     size_t idx = readint();
     if(idx >= KNum || KList[idx].in_use || KList[idx].rb==0 || KList[idx].rb->pos==0)
@@ -283,7 +286,7 @@ void decode(){
 int singleR(){
     int     rnd     = secure_open("/dev/urandom");
     uint8_t orecal  = urand_byte(rnd)%4;
-    uint8_t key_len = random_uint8(rnd,1,0x18);
+    uint8_t key_len = random_uint8(rnd,1,26);
     uint8_t * key   = secure_malloc(key_len+1);
     for(int i =0 ; i<key_len; i++)
         key[i] = urand_byte(rnd) ;
@@ -325,11 +328,11 @@ void challge(){
             win++;
     }
     if(win != XRound)
-        panic("");
+        panic("Try more");
     else{
-    puts("I am pretty sure you are qualified, and can now challenge more difficult versions.");
-    puts("New Randomness:");
-    scanf("%lf",&R);
+        puts("I am pretty sure you are qualified, and can now challenge more difficult versions.");
+        puts("New Randomness:");
+        scanf("%lf",&R);
     }
 }
 void play_ground()
@@ -387,6 +390,7 @@ void init_challenge_plaintext()
 void init_keytable(){
     KNum  = 0x10;
     KList = secure_malloc(KNum * sizeof(key_struct));
+    memset(KList,0,KNum *sizeof(key_struct));
 }
 void init(){
     fclose(stderr);
