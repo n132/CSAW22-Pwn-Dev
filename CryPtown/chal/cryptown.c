@@ -8,8 +8,7 @@
 #include "cryptown.h"
 #include "utils.h"
 
-key_struct *KList = 0;
-size_t KNum = 0 ; 
+
 void base64_output(char *buf,size_t len){
     size_t size = Base64encode_len(len);
     char *tmp = secure_malloc(size);
@@ -130,9 +129,9 @@ void key_list(){
         KList = secure_realloc(KList, KNum*sizeof(key_struct));
     }
 }
-void key_del(){
+void key_edit(){
     key_list();
-    printf("Which key: ");
+    printf("Chose a key: ");
     size_t idx = readint() ;
     if(idx >= KNum || !KList[idx].in_use)
     {
@@ -141,6 +140,28 @@ void key_del(){
     }
     if(KList[idx].rb)
     {
+        if(KList[idx].rb->pos)
+            free(KList[idx].rb->pos);
+        free(KList[idx].rb);
+        KList[idx].rb = 0 ;
+    }
+    readn(KList[idx].key,KList[idx].key_len);
+    puts("[+] Key Edit Done");
+    return ; 
+}
+void key_del(){
+    key_list();
+    printf("Chose a key: ");
+    size_t idx = readint() ;
+    if(idx >= KNum || !KList[idx].in_use)
+    {
+        puts("[-] Improper Index");
+        return ; 
+    }
+    if(KList[idx].rb)
+    {
+        if(KList[idx].rb->pos)
+            free(KList[idx].rb->pos);
         free(KList[idx].rb);
         KList[idx].rb = 0 ; 
     }
@@ -203,6 +224,9 @@ void key_management(){
                 break;
             case 2:
                 key_list();
+                break;
+            case 3:
+                key_edit();
                 break;
             default:
                 return ;
