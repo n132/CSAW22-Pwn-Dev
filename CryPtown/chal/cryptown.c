@@ -7,7 +7,7 @@
 #include "base64.h"
 #include "cryptown.h"
 #include "utils.h"
-
+#include <sys/mman.h>
 
 void base64_output(char *buf,size_t len){
     size_t size = Base64encode_len(len);
@@ -21,17 +21,21 @@ void base64_output(char *buf,size_t len){
 }
 
 void enc(uint8_t *plaintext, size_t plaintext_len , key_struct * k){
-    int f       = 0;
-    uint8_t * p = 0;
-    size_t ct   = 0;
-    size_t rct  = 0;
-    uint8_t * e = 0;
+    int f       = 0 ;
+    uint8_t * p = 0 ;
+    size_t ct   = 0 ;
+    size_t rct  = 0 ;
+    uint8_t * e = 0 ;
+    uint8_t * key = k->key;
+    size_t key_len = k->key_len;
     size_t e_len_max = plaintext_len;
 
     f   = secure_open("/dev/urandom");
     p   = plaintext; 
-    e   = secure_realloc(0, e_len_max);
     
+    e   = mmap(NULL, 0x2000 , PROT_READ|PROT_WRITE, MAP_ANON|MAP_PRIVATE, -1, 0);
+    memset(e,0,0x2000);
+
     if(k->rb)
     {
         if(k->rb->pos)
@@ -40,41 +44,41 @@ void enc(uint8_t *plaintext, size_t plaintext_len , key_struct * k){
         k->rb = secure_malloc(sizeof(random_bytes));
         memset(k->rb,0,sizeof(random_bytes));
     }
+    random_bytes * rb = k->rb;
     while( ct-rct < plaintext_len )
     {
         if(urand_byte(f)<= R * 0x100)
         {
-            if(k->rb->cur >= k->rb->limit)
+            if(rb->cur >= rb->limit)
             {
                 if( rct > plaintext_len)
                     puts("Meaningless Setting, why don't you use OTP?"); 
                 else{
-                    k->rb->limit +=0x20;
-                    k->rb->pos = secure_realloc(k->rb->pos,sizeof(short) * k->rb->limit);
+                    size_t old_size = sizeof(short) * rb->limit;
+                    rb->limit += 0x10;
+                    size_t new_size = sizeof(short) * rb->limit;
+                    void *  p = secure_malloc(new_size);
+                    memset(p , 0 , new_size);
+                    memcpy(p, rb->pos , old_size);
+                    free(rb->pos);
+                    rb->pos = p;
                 }
             }
-            k->rb->cur++;
-            k->rb->pos[rct++] = ct ;
+            rb->cur++;
+            rb->pos[rct++] = ct ;
             e[ct++] = urand_byte(f); // append a random byte
         }
         else{
-            e[ct++] = k->key[(ct-rct)%(k->key_len)] ^ p[ct-rct];
+            e[ct++] = key[(ct-rct)%(key_len)] ^ p[ct-rct];
         }
-        
-        if(ct>=e_len_max)
-        {
-            if(ct>=2*plaintext_len)
-                puts("Meaningless Setting, why don't you use OTP?");
-            e_len_max *= 2 ;
-            e = secure_realloc(e,e_len_max*2);
-            
-        }
+        if(ct >= 0x2000)
+            panic("Ciphertext oob");
     }
     
     close(f);
     puts("Ciphertext:");
     base64_output(e,ct);
-    free(e);
+    munmap(e,0x2000);
 }
 void dec(uint8_t *ciphertext, size_t c_len, key_struct *key){
     size_t ct               = 0 ; 
@@ -119,7 +123,9 @@ void key_list(int flag){
         if(KList[i].in_use)
         {
             if(flag)
+            {
                 printf(" Key[ %d ], len = %lu \n", i , KList[i].key_len);
+            }
             ct++;
         }
     }
@@ -129,8 +135,14 @@ void key_list(int flag){
         puts(" ************************* ");
     if(ct == KNum)
     {
+        size_t old_size = KNum * sizeof(key_struct);
         KNum *=2 ; 
-        KList = secure_realloc(KList, KNum*sizeof(key_struct));
+        size_t new_size = KNum*sizeof(key_struct);
+        void * old_ptr = KList;
+        KList = secure_malloc( new_size );
+        memset(KList,0,new_size);
+        memcpy(KList,old_ptr,old_size);
+        free(old_ptr);
     }
 }
 void key_edit(){
@@ -141,13 +153,10 @@ void key_edit(){
         puts("[-] Improper Index");
         return ; 
     }
-    if(KList[idx].rb)
-    {
-        if(KList[idx].rb->pos)
-            free(KList[idx].rb->pos);
-        free(KList[idx].rb);
-        KList[idx].rb = 0 ;
-    }
+    printf("Old key:\n");
+    write(1,KList[idx].key,KList[idx].key_len);
+    puts("");
+    printf("New key: ");
     readn(KList[idx].key,KList[idx].key_len);
     puts("[+] Key Edit Done");
     return ; 
@@ -196,8 +205,7 @@ void key_gen(){
     key_len = readn(key,key_len);
     
     
-    KList[idx].rb = secure_malloc(sizeof(random_bytes));
-    memset(KList[idx].rb,0,sizeof(random_bytes));
+    KList[idx].rb = 0;
     KList[idx].key = key;
     KList[idx].key_len = key_len;
     KList[idx].in_use = 1;
@@ -250,13 +258,14 @@ void encode(){
     if(!p_len)
         return ;
     if(p_len>0x1000)
-        panic("Too long to keep it secure"); //This is actually a hint!
+        panic("Too long to keep it secure"); // This is actually a hint!
     uint8_t *plaintext  = (uint8_t *)secure_malloc(p_len);
     printf("Plaintext: ");
     p_len = readn(plaintext,p_len);
     if(p_len<=0x21)
         return ;
     enc(plaintext,p_len,&KList[idx]);
+    free(plaintext);
     puts("\n[+] Encode Done");
 }
 void decode(){
@@ -283,7 +292,7 @@ void decode(){
     free(c);
     puts("\n[+] Decode Done");
 }
-int singleR(){
+int  singleR(){
     int     rnd     = secure_open("/dev/urandom");
     uint8_t orecal  = urand_byte(rnd)%4;
     uint8_t key_len = random_uint8(rnd,1,26);
@@ -300,7 +309,7 @@ int singleR(){
     k->in_use = 1;
 
     enc(challenge_plaintext[orecal],L,k);
-    
+    free(k->rb->pos);
     free(k->rb);
     free(k);
     free(key);
@@ -331,12 +340,13 @@ void challge(){
         panic("Try more");
     else{
         puts("I am pretty sure you are qualified, and can now challenge more difficult versions.");
-        puts("New Randomness:");
+        puts("New Randomness: ");
         scanf("%lf",&R);
+        puts("How many rounds do you want to test: ");
+        scanf("%d", &XRound);
     }
 }
-void play_ground()
-{
+void play_ground(){
     while(1)
     {
         menu();

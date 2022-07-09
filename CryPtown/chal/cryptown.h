@@ -1,4 +1,4 @@
-#define XRound 0x100
+int XRound=0x100;
 double R = 0.32;
 size_t L = 500;
 char*   challenge_plaintext[4]= {0};
