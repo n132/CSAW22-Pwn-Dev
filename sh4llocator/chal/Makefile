@@ -1,2 +1,2 @@
-main: main.c
-	gcc ./main.c -o ./main
+sh44llocator: sh4llocator.c 
+	gcc sh4llocator.c -o ./sh4llocator
