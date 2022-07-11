@@ -5,8 +5,6 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 
-
-
 extern internal_malloc();
 extern internal_free();
 
@@ -98,7 +96,13 @@ void cd(char *dir_name){
     }
     else if(!strcmp("..",dir_name))
     {
-        pnode * pre, * tmp; //Vul
+        
+        pnode * pre, * tmp;
+        pre = pwd();
+        if(!strcmp(pre->name,"~"))
+            return ; 
+        
+        pre = 0 ; 
         tmp  = PATH; 
         while(tmp->next)
         {
@@ -124,8 +128,7 @@ void cd(char *dir_name){
 
     }
 }
-inode * inode_init(int type,char *cmd)
-{
+inode * inode_init(int type,char *cmd){
     inode * p = (inode *)internal_malloc(sizeof(inode));
     p->type = type;
     if(check_name(cmd))
@@ -138,8 +141,8 @@ inode * inode_init(int type,char *cmd)
             p->content = internal_malloc(0x18);
             memset(p->content,0,0x18);
         }
-        else
-            p->content = 0;
+        // else
+        //    p->content = 0;
         
         inode *cur = pwd();
         insert(cur,p);
@@ -153,8 +156,7 @@ void mkdir(char *cmd){
     inode_init(0,cmd);
     return ;
 }
-inode * touch(char *cmd)
-{
+inode * touch(char *cmd){
     if(!strcmp("",cmd))
         exit(0);
     return inode_init(1,cmd);
@@ -220,8 +222,7 @@ void rm_dir(char *name, inode *cur_path){
 void rmdir(char *cmd){
     rm_dir(cmd,pwd());
 }
-void ls_dir(inode * target)
-{
+void ls_dir(inode * target){
     for(int i=0;i<0x10;i++)
     {
         if(target->ptr[i]!=0)
@@ -253,8 +254,7 @@ void ls(char *cmd){
     ls_dir(target);
     return;
 }
-void declare(char *key,char *val)
-{
+void declare(char *key,char *val){
     node * ptr = (node *)internal_malloc(sizeof(node));
     if(ptr<=0)
         exit(1);
@@ -271,8 +271,7 @@ void declare(char *key,char *val)
     ptr->next = variables;
     variables = ptr;
 }
-inode * lookfor(char *filename)
-{
+inode * lookfor(char *filename){
     inode * cur = pwd();
     for(int i=0;i<0x10;i++)
     {
@@ -284,8 +283,7 @@ inode * lookfor(char *filename)
     }
     return 0 ; 
 }
-void echo(char *c)
-{
+void echo(char *c){
     char *filename = 0;
     inode * target = 0 ;
     filename = strstr(c, " > ");
@@ -333,8 +331,7 @@ void echo(char *c)
         return ;
     }
 }
-void unset(char *c)
-{
+void unset(char *c){
     node * ptr = variables;
     while(ptr)
     {
@@ -379,8 +376,7 @@ void cat(char *filename){
     }
     printf("File doesn't exist\n");
 }
-void sh4ll()
-{
+void sh4ll(){
     size_t buffer_size = 0x400;
     char* cmd = (char *)internal_malloc(buffer_size);
     if(cmd<=0)
@@ -457,8 +453,7 @@ void sh4ll()
     internal_free(cmd);
     return ;
 }
-void init_home()
-{
+void init_home(){
     home = (inode *)internal_malloc(sizeof(inode));
     if(home<=0)
         exit(1);
@@ -470,7 +465,6 @@ void init_home()
     cur_dir = home;
     init_path();
 }
-
 void logo_loader(){
     char buf[0x500]={0}; 
     int f = open("./logo",0);
@@ -487,16 +481,14 @@ void init(){
     setvbuf(stdout, 0, 2, 0);
     logo_loader();
 }
-void shell()
-{
+void shell(){
     while(1)
     {
         printf("# ");
         sh4ll();
     }
 }
-int chall()
-{
+int chall(){
     init();
     // load_bash();
     init_home();
