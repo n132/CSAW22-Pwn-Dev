@@ -490,7 +490,6 @@ void shell(){
 }
 int chall(){
     init();
-    // load_bash();
     init_home();
     shell();
 }
