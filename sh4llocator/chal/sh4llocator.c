@@ -5,8 +5,8 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 
-extern internal_malloc();
-extern internal_free();
+#include <malloc/shmalloc.h>
+
 
 typedef struct node{
     char *key;
@@ -30,13 +30,11 @@ node * variables = NULL;
 inode * home = NULL;
 inode * cur_dir = NULL;
 
-void panic(const char *s)
-{
+void panic(const char *s){
     puts(s);
     exit(1);
 }
-int check_name( char * c)
-{
+int check_name( char * c){
     for(char *i = c ; *i != 0 ; i++)
     {
         if(*i < 0x30 || *i > 0x7f)
@@ -61,16 +59,12 @@ inode * pwd(){
 }
 pnode * PATH  = 0 ;
 pnode* new_pnode(){
-    pnode *tmp = (pnode *)internal_malloc(sizeof(pnode));
+    pnode *tmp = (pnode *)malloc(sizeof(pnode));
     tmp->next = 0 ;
     tmp->ptr = pwd();
     return tmp;
 }
-void init_path(){
-    if(PATH)
-        return ; 
-    PATH = new_pnode();
-}
+
 void push_current_pnode(){
     pnode * tmp = PATH;
     while(tmp->next)
@@ -99,7 +93,7 @@ void cd(char *dir_name){
         
         pnode * pre, * tmp;
         pre = pwd();
-        if(!strcmp(pre->name,"~"))
+        if(!strcmp(pre->ptr->name,"~"))
             return ; 
         
         pre = 0 ; 
@@ -110,7 +104,7 @@ void cd(char *dir_name){
             tmp = tmp->next;
         }
         pre->next = 0 ; 
-        internal_free(tmp);
+        free(tmp);
         cur_dir = pre->ptr;
     }
     else{
@@ -129,7 +123,7 @@ void cd(char *dir_name){
     }
 }
 inode * inode_init(int type,char *cmd){
-    inode * p = (inode *)internal_malloc(sizeof(inode));
+    inode * p = (inode *)malloc(sizeof(inode));
     p->type = type;
     if(check_name(cmd))
     {
@@ -138,7 +132,7 @@ inode * inode_init(int type,char *cmd){
             p->ptr[i]=0;
         
         if(type){
-            p->content = internal_malloc(0x18);
+            p->content = malloc(0x18);
             memset(p->content,0,0x18);
         }
         // else
@@ -150,7 +144,7 @@ inode * inode_init(int type,char *cmd){
     }
     exit(1);
 }
-void mkdir(char *cmd){
+void mk_dir(char *cmd){
     if(!strcmp("",cmd))
         exit(-1);
     inode_init(0,cmd);
@@ -173,10 +167,10 @@ void rm_file(char *name, inode *cur_path){
         if(!strcmp(name,cur->ptr[i]->name))
         {
             inode * target = cur->ptr[i];
-            internal_free(target->name);
+            free(target->name);
             if(target->content!=0)
-                internal_free(target->content);
-            internal_free(target);
+                free(target->content);
+            free(target);
             cur->ptr[i] = 0;
 
             return ;
@@ -219,7 +213,7 @@ void rm_dir(char *name, inode *cur_path){
     }
     return ;
 }
-void rmdir(char *cmd){
+void rmdir_(char *cmd){
     rm_dir(cmd,pwd());
 }
 void ls_dir(inode * target){
@@ -254,23 +248,7 @@ void ls(char *cmd){
     ls_dir(target);
     return;
 }
-void declare(char *key,char *val){
-    node * ptr = (node *)internal_malloc(sizeof(node));
-    if(ptr<=0)
-        exit(1);
-    size_t key_len = strlen(key);
-    size_t val_len = strlen(val);
-    ptr->key = (char *)internal_malloc(key_len+1);
-    ptr->val = (char *)internal_malloc(val_len+1);
-    if(ptr->key <= 0 || ptr->val <= 0)
-        exit(1);
-    memset(ptr->key,0,key_len+1);
-    memset(ptr->val,0,val_len+1);
-    strcpy(ptr->key,key);
-    strcpy(ptr->val,val);
-    ptr->next = variables;
-    variables = ptr;
-}
+
 inode * lookfor(char *filename){
     inode * cur = pwd();
     for(int i=0;i<0x10;i++)
@@ -306,7 +284,7 @@ void echo(char *c){
                 if(target)
                 {
                     if(target->content)
-                        internal_free(target->content);
+                        free(target->content);
                     target->content = strdup(ptr->val);
                 }
                 else
@@ -323,7 +301,7 @@ void echo(char *c){
         if(target)
         {
             if(target->content)
-                internal_free(target->content);
+                free(target->content);
             target->content = strdup(c);
         }
         else
@@ -331,26 +309,41 @@ void echo(char *c){
         return ;
     }
 }
+void declare(char *key,char *val){
+    node * ptr = (node *)malloc(sizeof(node));
+    if(ptr<=0)
+        exit(1);
+    size_t key_len = strlen(key);
+    size_t val_len = strlen(val);
+    ptr->key = (char *)malloc(key_len+1);
+    ptr->val = (char *)malloc(val_len+1);
+    if(ptr->key <= 0 || ptr->val <= 0)
+        exit(1);
+    memset(ptr->key,0,key_len+1);
+    memset(ptr->val,0,val_len+1);
+    strcpy(ptr->key,key);
+    strcpy(ptr->val,val);
+    ptr->next = variables;
+    variables = ptr;
+}
 void unset(char *c){
     node * ptr = variables;
+    node * pre = 0;
     while(ptr)
     {
-        node * pre = 0;
         if(!strcmp(c,ptr->key))
         {
             node * next = ptr->next;
-            internal_free(ptr->val);
-            internal_free(ptr->key);
-            internal_free(ptr);
+            free(ptr->val);
+            free(ptr->key);
+            free(ptr);
             if(pre==0)
-            {
                 variables = next;
-            }
-            else{
+            else
                 pre->next = next;
-            }
             return ;
         }
+        pre = ptr;
         ptr = ptr->next;
     }
 }
@@ -360,10 +353,7 @@ void show_pwd(){
     return;
 }
 void cat(char *filename){
-    inode * cur = pwd();
-    inode * target = 0;
-    
-    target = pwd();
+    inode * cur = pwd();    
     for(int i=0;i<0x10;i++)
     {
         if(cur->ptr[i]==0 || cur->ptr[i]->type==0)
@@ -377,8 +367,9 @@ void cat(char *filename){
     printf("File doesn't exist\n");
 }
 void sh4ll(){
+    printf("# ");
     size_t buffer_size = 0x400;
-    char* cmd = (char *)internal_malloc(buffer_size);
+    char* cmd = (char *)malloc(buffer_size);
     if(cmd<=0)
         exit(1);
     memset(cmd,0,buffer_size);
@@ -402,9 +393,9 @@ void sh4ll(){
                 show_pwd();
             else if(!strcmp("exit",cmd))
                 exit(0);
-            else{
+            else
                 printf("Command not found: %s\n",cmd);
-            }
+            
         }
         else{
             *pos = 0 ;
@@ -420,10 +411,10 @@ void sh4ll(){
             unset(pos+1);
         }
         else if(!strcmp("mkdir",cmd)){
-            mkdir(pos+1);
+            mk_dir(pos+1);
         }
         else if(!strcmp("rmdir",cmd)){
-            rmdir(pos+1);
+            rmdir_(pos+1);
         }
         else if(!strcmp("touch",cmd)){
             touch(pos+1);
@@ -450,20 +441,25 @@ void sh4ll(){
             printf("Command not found: %s\n",cmd);
         }
     }
-    internal_free(cmd);
+    free(cmd);
     return ;
 }
+void init_path(){
+    if(PATH)
+        return ; 
+    PATH = new_pnode();
+}
 void init_home(){
-    home = (inode *)internal_malloc(sizeof(inode));
+    home = (inode *)malloc(sizeof(inode));
     if(home<=0)
-        exit(1);
+        panic("Init Home");
     home->type = 0;
     home->name = strdup("~");
     for(int i=0;i<0x10;i++)
         home->ptr[i]=0;
     home->content = 0;
     cur_dir = home;
-    init_path();
+    return ; 
 }
 void logo_loader(){
     char buf[0x500]={0}; 
@@ -480,16 +476,12 @@ void init(){
     setvbuf(stdin,  0, 2, 0);
     setvbuf(stdout, 0, 2, 0);
     logo_loader();
-}
-void shell(){
-    while(1)
-    {
-        printf("# ");
-        sh4ll();
-    }
-}
-int chall(){
-    init();
     init_home();
-    shell();
+    init_path();
+}
+int main(){
+    init();
+    while(1)
+        sh4ll();
+    return 0 ; 
 }
