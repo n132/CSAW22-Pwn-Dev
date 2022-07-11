@@ -83,8 +83,18 @@ void push_current_pnode(){
 void cd(char *dir_name){
     if(!strcmp("",dir_name))
     {
-        cur_dir = home;
+        pnode * next, * ptr;
+        ptr = PATH;
+        while(ptr->next)
+        {
+            next = ptr->next;
+            free(ptr);
+            ptr = next;
+        }
+        free(ptr);
+        PATH = cur_dir = home;
         push_current_pnode();
+        
     }
     else if(!strcmp("..",dir_name))
     {
