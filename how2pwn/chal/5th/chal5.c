@@ -6,9 +6,14 @@
 #include <string.h>
 #include <sys/ioctl.h>
 #include <stddef.h>
-#define STDIN 0
+void init(){
+    // Set stdin/stdout unbuffered
+    // So folks would not meet io(input/output) issues
+    fclose(stderr);
+    setvbuf(stdin,  0, 2, 0);
+    setvbuf(stdout, 0, 2, 0);
+}
 void sandbox(){
-
     // challenge setting
     struct sock_filter strict_filter[] = {
         BPF_STMT(BPF_LD | BPF_W | BPF_ABS,offsetof(struct seccomp_data, nr)),
@@ -32,9 +37,10 @@ void sandbox(){
 }
 
 int main(){
+    init();
     // To make exploit script easier, our shellcode would be on 0xcafe000
     char *buf = mmap(0xcafe000,0x1000,7,0x21,0,0);
-    read(STDIN, buf, 0x100);
+    read(0, buf, 0x100);
     void (* p )(); 
     p = buf;
     sandbox();

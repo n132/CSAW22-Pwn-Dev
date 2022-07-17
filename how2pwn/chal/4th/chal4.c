@@ -5,7 +5,13 @@
 #include <linux/filter.h>
 #include <sys/prctl.h>
 #include <stddef.h>
-#define STDIN 0
+void init(){
+    // Set stdin/stdout unbuffered
+    // So folks would not meet io(input/output) issues
+    fclose(stderr);
+    setvbuf(stdin,  0, 2, 0);
+    setvbuf(stdout, 0, 2, 0);
+}
 void sandbox(){
     // I known you guys have known how to use shellcraft to solve my challenges in few seconds
     // I am creating a sandbox to only allow few syscalls so you have to construct the shellcode yourself
@@ -53,8 +59,9 @@ void sandbox(){
     syscall(__NR_seccomp,SECCOMP_SET_MODE_FILTER,0,&prog);
 }
 int main(){
+    init();
     char buf[0x100]; 
-    read(STDIN, buf, 0x100);
+    read(0, buf, 0x100);
     void (* p )(); 
     p = buf;
     sandbox();
