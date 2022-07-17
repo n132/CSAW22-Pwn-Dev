@@ -32,8 +32,8 @@ void sandbox(){
 }
 
 int main(){
-
-    char buf[0x100]; 
+    // To make exploit script easier, our shellcode would be on 0xcafe000
+    char *buf = mmap(0xcafe000,0x1000,7,0x21,0,0);
     read(STDIN, buf, 0x100);
     void (* p )(); 
     p = buf;
