@@ -3,24 +3,14 @@ how2pwn is a series of educational challenges(5 stages). I write this challenge 
 
 `docker push n132/pwn:20.04`
 
-# public
-* MD5(./share.zip)= ?
 
-```
-❯ md5sum CSAW-GAME 
-30b1cf5e7d75d9d27de6cf603f538c6e  CSAW-GAME
-❯ md5sum pwn 
-d677d2623392395c31e257c594961f73  pwn
-❯ md5sum libc-2.31.so 
-d371da546786965fe0ee40147ffef716  libc-2.31.so
-✗ md5sum share.zip
-26103913e0898fae499f071dcb805317  share.zip
-```
 # Solution
 
 All solvers are in this [folder][1]
 
 # Pub
+
+* MD5(./share.zip)= e6dec653fe13b6ba52932cbc5dc92449
 
 This folder would be shown to the public, including the source code and binary. You can run the setup.py script to renew the file in pub.
 
@@ -29,7 +19,9 @@ This folder would be shown to the public, including the source code and binary. 
 # Docker
 
 I wrote a script to build the challenge. It opens 5 docker containers.
-usage:
+
+
+Usage:
 ```python
 cd ./Dockerize
 ./setup clean
@@ -38,9 +30,6 @@ cd ./Dockerize
 # ./setup down
 # ./setup clean
 ```
-
-
-
 
 [1]: ./solution
 
