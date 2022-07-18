@@ -1,4 +1,4 @@
-#include <seccomp.h>
+#include <linux/seccomp.h>
 #include <unistd.h>
 #include <syscall.h>
 #include <sys/prctl.h>
@@ -71,7 +71,7 @@ int main(){
     init();
     // To make exploit script easier, our shellcode would be on 0xcafe000
     char *buf = mmap((void *)0xcafe000,0x1000,7,0x21,0,0);
-    if(buf!=0xcafe000)
+    if((size_t)buf!=0xcafe000)
         panic("Fail to mmap");
     puts("Enter your shellcode: ");
     read(0, buf, 0x100);

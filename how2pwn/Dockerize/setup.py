@@ -18,7 +18,7 @@ def init(stage,cwd):
     call(f"cp ../public/start.sh ./{stage}",cwd) 
     bin_dir = cwd / stage / "bin"
     bin_dir.mkdir()
-    call(f"cp ../public/bin/OtherStages/{stage} ./{stage}/bin/chal", cwd)
+    call(f"cp ../public/bin/all/{stage} ./{stage}/bin/chal", cwd)
     call(f"chmod +x ./{stage}/bin/chal",cwd)
     call(f"cp ../chal/{stage}/flag ./{stage}/bin/", cwd)
     if(Path(f"../chal/{stage}/ticket").exists()):

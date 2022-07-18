@@ -1,23 +1,43 @@
-# Stage 1
-Congratulations, now you known how this challenge and shellcode works!
+# Stage 2
 
-# NextStage
+!(2/5)!
 
-## Ticket
+# Ticket
 e5d8c516de42013a1c8951a2150a5b5e
 
-## Source Code
+# Hints
 
-```c
-```
+```py
+from pwn import *
 
-## Hints
+p = process("./chal3")
+# context.terminal = ['tmux', 'splitw', '-h', '-F' '#{pane_pid}', '-P']
 
-```python
+# For this challenge, your task is to bypass a sandbox and cat the flag
+# 0. Read this if you don't know seccmp: https://man7.org/linux/man-pages/man2/seccomp.2.html
+# 1. There are some hints in this article: https://n132.github.io/2022/07/03/Guide-of-Seccomp-in-CTF.html
+# 2. If you don't know how to use a syscall (i.g., openat), read the manual page of it. You'll find some samples
+# 3. Btw, the path of our target is "/flag" 
 
-```
+context.arch = 'amd64'
+# gdb.attach(p)
 
-## Makefile
+path_of_flag = hex(u64(b"/flag".ljust(8,b'\0')))
 
-```
+# shellcode of orw
+shellcode = f'''
+mov rsi,{path_of_flag}
+push rsi
+mov rsi,rsp
+...
+syscall
+...
+syscall
+...
+syscall
+'''
+
+shellcode = asm(shellcode)
+p.send(shellcode)
+p.interactive()
 ```

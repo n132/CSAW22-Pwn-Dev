@@ -12,6 +12,7 @@ p = process("./chal1")
 # You can check all Linux x64 syscalls at this page: https://syscalls64.paolostivanin.com/
 # Your task is understanding and completing the shellcode
 
+# And our goal is running exec("/bin/sh",0,0) to get a shell
 v1 = ?
 v2 = ?
 
