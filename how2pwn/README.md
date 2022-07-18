@@ -18,8 +18,30 @@ d371da546786965fe0ee40147ffef716  libc-2.31.so
 ```
 # Solution
 
+All solvers are in this [folder][1]
+
+# Pub
+
+This folder would be shown to the public, including the source code and binary. You can run the setup.py script to renew the file in pub.
+
+`python3 ./setup.py release`
+
+# Docker
+
+I wrote a script to build the challenge. It opens 5 docker containers.
+usage:
+```python
+cd ./Dockerize
+./setup clean
+./setup build
+./setup up
+# ./setup down
+# ./setup clean
+```
 
 
 
+
+[1]: ./solution
 
 
