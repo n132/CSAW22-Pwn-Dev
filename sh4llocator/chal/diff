@@ -1,0 +1,22 @@
+diff --git a/sh4llocator/chal/bash-9439ce094c9aa7557a9d53ac7b412a23aa66e36b/shell.c b/sh4llocator/chal/bash-9439ce094c9aa7557a9d53ac7b412a23aa66e36b/shell.c
+index 419b866..ce8087f 100644
+--- a/sh4llocator/chal/bash-9439ce094c9aa7557a9d53ac7b412a23aa66e36b/shell.c
++++ b/sh4llocator/chal/bash-9439ce094c9aa7557a9d53ac7b412a23aa66e36b/shell.c
+@@ -352,7 +352,7 @@ _cygwin32_check_tmp ()
+     }
+ }
+ #endif /* __CYGWIN__ */
+-#include "./sh4llocator.c"
++
+ #if defined (NO_MAIN_ENV_ARG)
+ /* systems without third argument to main() */
+ int
+@@ -366,8 +366,6 @@ main (argc, argv, env)
+      char **argv, **env;
+ #endif /* !NO_MAIN_ENV_ARG */
+ {
+-  chal();
+-  _exit(0);
+   register int i;
+   int code, old_errexit_flag;
+ #if defined (RESTRICTED_SHELL)
