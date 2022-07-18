@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from pathlib import Path
 import subprocess
 def call(cmd,cwd):
