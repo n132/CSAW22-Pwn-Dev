@@ -5,12 +5,26 @@
 #include <linux/filter.h>
 #include <sys/prctl.h>
 #include <stddef.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <string.h>
+void checkin(){
+    char real_ticket[0x30] = {0};
+    char your_ticket[0x30] = {0};
+    int f = open("./ticket",0);
+    read(f,real_ticket,0x20);
+    read(0,your_ticket,0x20);
+    close(f);
+    if(strncmp(real_ticket,your_ticket,0x20))
+        _exit(1);
+    return ; 
+}
 void init(){
-    // Set stdin/stdout unbuffered
-    // So folks would not meet io(input/output) issues
     fclose(stderr);
     setvbuf(stdin,  0, 2, 0);
     setvbuf(stdout, 0, 2, 0);
+    checkin();
 }
 void sandbox(){
     // I known you guys have known how to use shellcraft to solve my challenges in few seconds
@@ -42,7 +56,7 @@ int main(){
     char buf[0x100]; 
     read(0, buf, 0x100);
     void (* p )(); 
-    p = buf;
+    p = (void (*)())buf;
     sandbox();
     p();
     return 1;
