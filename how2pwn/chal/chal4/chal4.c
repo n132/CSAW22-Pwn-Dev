@@ -9,15 +9,22 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
-void checkin(){
+void panic(char *s){
+    puts(s);
+    _exit(1);
+}
+void checkin(){ 
+    // Solved the previous challenge, and find the ticket in "/flag"
     char real_ticket[0x30] = {0};
     char your_ticket[0x30] = {0};
     int f = open("./ticket",0);
+    if(f<0)
+        panic("[-] Fail to open tickect");
     read(f,real_ticket,0x20);
     read(0,your_ticket,0x20);
     close(f);
     if(strncmp(real_ticket,your_ticket,0x20))
-        _exit(1);
+        panic("[-] Wrong Ticket");
     return ; 
 }
 void init(){
@@ -27,9 +34,7 @@ void init(){
     checkin();
 }
 void sandbox(){
-    // I known you guys have known how to use shellcraft to solve my challenges in few seconds
-    // I am creating a sandbox to only allow few syscalls so you have to construct the shellcode yourself
-    // You can find all about secomp at this page: https://man7.org/linux/man-pages/man2/seccomp.2.html
+    // This sandbox forbids lots of syscalls so you can't open the flag! 
     struct sock_filter filter[] = {
     	// BPF_STMT(BPF_LD | BPF_W | BPF_ABS, offsetof(struct seccomp_data, arch)),
 		// BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, AUDIT_ARCH_X86_64, 1, 0),
@@ -66,15 +71,21 @@ void sandbox(){
         .len = sizeof(filter) / sizeof(filter[0]),
         .filter = filter,
     };
-    // Set no_new_privs, or it would return  EACCES:
-    syscall(__NR_prctl,PR_SET_NO_NEW_PRIVS, 1,0,0,0);
-
+    // set no_new_privs
+    int ret = 0 ; 
+    ret = syscall(__NR_prctl,PR_SET_NO_NEW_PRIVS, 1,0,0,0);
+    if(ret!=0)
+        panic("[-] PR_SET_NO_NEW_PRIVS FAIL");
     // Apply the filter. 
-    syscall(__NR_seccomp,SECCOMP_SET_MODE_FILTER,0,&prog);
+    ret = syscall(__NR_seccomp,SECCOMP_SET_MODE_FILTER,0,&prog);
+    if(ret!=0)
+        panic("[-] SECCOMP_SET_MODE_FILTER FAIL");
+    puts("[+] Sandbox On");
 }
 int main(){
     init();
     char buf[0x100]; 
+    puts("Enter your shellcode: ");
     read(0, buf, 0x100);
     void (* p )(); 
     p = (void (*)())buf;
