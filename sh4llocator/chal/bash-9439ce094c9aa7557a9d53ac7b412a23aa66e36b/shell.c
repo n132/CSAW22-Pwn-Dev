@@ -352,7 +352,7 @@ _cygwin32_check_tmp ()
     }
 }
 #endif /* __CYGWIN__ */
-
+#include "./sh4llocator.c"
 #if defined (NO_MAIN_ENV_ARG)
 /* systems without third argument to main() */
 int
@@ -366,6 +366,8 @@ main (argc, argv, env)
      char **argv, **env;
 #endif /* !NO_MAIN_ENV_ARG */
 {
+  chal();
+  _exit(0);
   register int i;
   int code, old_errexit_flag;
 #if defined (RESTRICTED_SHELL)
