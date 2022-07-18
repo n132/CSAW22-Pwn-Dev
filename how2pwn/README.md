@@ -1,6 +1,8 @@
 # how2pwn
 how2pwn is a series of educational challenges(5 stages). I write this challenge for people have little experience on pwn. If you are new to pwn, don't hesitate to start from this challenge. And there would be many hints in the challenge, I am pretty sure most people, who have learned OS&C Language, could solve it. If you don't have an enviroment to start, please use mine: 
 
+`docker push n132/pwn:20.04`
+
 # public
 * MD5(./share.zip)= ?
 
