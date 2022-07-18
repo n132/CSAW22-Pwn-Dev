@@ -2,7 +2,8 @@ from pwn import *
 context.log_level='debug'
 p = process("./chal1")
 # p = remote("127.0.0.1", 60001)
-
+context.terminal = ['tmux', 'splitw', '-h', '-F' '#{pane_pid}', '-P']
+gdb.attach(p) # attach to debug, don't forget to run "tmux" before running the script
 # Tip: In x64, 
 # rdi/rsi/rdx is the register to store the first/second/third parameter of a syscall
 # rax is the syscall number, for example `mov rax,0 ; syscall` means calling read
@@ -13,6 +14,7 @@ p = process("./chal1")
 # Your task is understanding and completing the shellcode
 
 # And our goal is running exec("/bin/sh",0,0) to get a shell
+
 v1 = ?
 v2 = ?
 

