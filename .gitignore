@@ -1,13 +1,5 @@
 .DS_store
-
 .gdb_history
-
 __pycache__
-
 peda-session-*.txt
-
-.vscode/*
-
 core
-
-

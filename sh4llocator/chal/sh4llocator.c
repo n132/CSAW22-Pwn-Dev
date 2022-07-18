@@ -8,6 +8,7 @@
 #include <malloc/shmalloc.h>
 
 
+// Got the idea from https://pwnable.tw/#37, although I didn't solve it.
 typedef struct node{
     char *key;
     char *val;
@@ -135,6 +136,7 @@ inode * inode_init(int type,char *cmd){
             p->content = malloc(0x18);
             memset(p->content,0,0x18);
         }
+        // Vul Here:
         // else
         //    p->content = 0;
         
@@ -248,7 +250,6 @@ void ls(char *cmd){
     ls_dir(target);
     return;
 }
-
 inode * lookfor(char *filename){
     inode * cur = pwd();
     for(int i=0;i<0x10;i++)
@@ -479,6 +480,13 @@ void init(){
     init_home();
     init_path();
 }
+int chal(){
+    init();
+    while(1)
+        sh4ll();
+    return 0 ; 
+}
+
 int main(){
     init();
     while(1)
