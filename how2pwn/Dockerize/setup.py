@@ -23,6 +23,8 @@ def init(stage,cwd):
     call(f"cp ../chal/{stage}/flag ./{stage}/bin/", cwd)
     if(Path(f"../chal/{stage}/ticket").exists()):
         call(f"cp ../chal/{stage}/ticket ./{stage}/bin/",cwd)
+    else:
+        call(f"touch ./{stage}/bin/ticket",cwd)
     
 def builder(stage="chal1"):
     work_dir = Path(".") / stage
@@ -75,6 +77,6 @@ if __name__ == "__main__":
         elif sys.argv[1]=='down':
             down()
         else:
-            print("Usage: python3 ./setup [ build | clean ]")
+            print("Usage: python3 ./setup  [ build, clean, up, down ]")
     else:
         print("Usage: python3 ./setup  [ build, clean, up, down ]")

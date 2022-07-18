@@ -8,11 +8,12 @@ def clean():
     print("[+] Clean")
 
 def release():
-    call("make",Path("."))
+    pwd = Path(".")
+    call("make",pwd)
     # copy chal1
-    call("cp ./public/bin/all/chal1 ./public/bin/chal")
+    call("cp ./public/bin/all/chal1 ./public/bin/chal",pwd)
     # copy source code
-    call("cp ./chal/*/*.c ./public/src/")
+    call("cp ./chal/*/*.c ./public/src/",pwd)
     print("[+] Release")
 
 import sys
