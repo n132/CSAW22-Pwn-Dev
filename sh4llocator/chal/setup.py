@@ -34,5 +34,3 @@ if __name__ == "__main__":
             init()
         elif sys.argv[1] == "clean":
             clean()
-        elif sys.argv[1] == "up":
-            pass

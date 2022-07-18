@@ -486,10 +486,3 @@ int chal(){
         sh4ll();
     return 0 ; 
 }
-
-int main(){
-    init();
-    while(1)
-        sh4ll();
-    return 0 ; 
-}
