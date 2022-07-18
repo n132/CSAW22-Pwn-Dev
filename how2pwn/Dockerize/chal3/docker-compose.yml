@@ -10,7 +10,7 @@ services:
             - "./ctf.xinetd:/etc/xinetd.d/ctf:ro"
             - "./tmp:/tmp:ro"
         ports:
-            - "60001:9999"
+            - "60003:9999"
         expose:
             - "9999"
         pids_limit: 1024
