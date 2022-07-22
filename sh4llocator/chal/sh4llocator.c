@@ -45,15 +45,22 @@ int check_name( char * c){
     return 1;
 }
 void insert(inode * dir,inode * item){
-    for(int i=0;i<0x10;i++)
-    {
+    // for(int i=0;i<0x10;i++)
+    // {
+    //     if(dir->ptr[i]==0)
+    //     {
+    //         dir->ptr[i] = item;
+    //         return ;
+    //     }
+    // }
+    // exit(1);
+    /*vul*/
+    int i = 0  ; 
+    for(; i < 0x10; i ++)
         if(dir->ptr[i]==0)
-        {
-            dir->ptr[i] = item;
-            return ;
-        }
-    }
-    exit(1);
+            break;
+    dir->ptr[i] = item;
+    return ;
 }
 inode * pwd(){
     return cur_dir;
@@ -136,9 +143,8 @@ inode * inode_init(int type,char *cmd){
             p->content = malloc(0x18);
             memset(p->content,0,0x18);
         }
-        // Vul Here:
-        // else
-        //    p->content = 0;
+        else
+           p->content = 0;
         
         inode *cur = pwd();
         insert(cur,p);

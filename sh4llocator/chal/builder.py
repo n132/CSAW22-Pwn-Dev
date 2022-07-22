@@ -20,7 +20,7 @@ def init():
 
 def clean():
     call("rm -rf ./bash-9439ce094c9aa7557a9d53ac7b412a23aa66e36b",pwd)
-    if(0):  
+    if(1):  
         call("rm -rf ./sh4llocator",pwd)
     
 import sys
