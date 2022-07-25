@@ -29,6 +29,11 @@ def build():
     # start.sh
     with open("./chal/bin/start.sh","w+") as f:
         f.write(f"cd ./run && ./chal\n")
+    with open("./chal/Dockerfile","r") as f:
+        data = f.read()
+    data = data.replace("20.04","22.04")
+    with open("./chal/Dockerfile","w") as f:
+        f.write(data)
     call("chmod +x ./chal/bin/start.sh",Path("."))
     print("[+] Build")
 

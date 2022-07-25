@@ -2,7 +2,8 @@
 from pwn import *
 context.arch='amd64'
 # context.log_level='debug'
-p= process("./unsafe-linking")
+# p= process("./unsafe-linking")
+p=remote("0.0.0.0",60001)
 sla 	= lambda a,b: 	p.sendlineafter(a,b)
 sl 	    = lambda a,b: 	p.sendafter(a,b)
 
