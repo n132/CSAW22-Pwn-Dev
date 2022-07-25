@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "base64.h": "c",
-        "utils.h": "c",
-        "cryptown.h": "c"
-    }
-}
