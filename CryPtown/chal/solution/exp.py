@@ -1,8 +1,9 @@
 from pwn import *
 context.arch='amd64'
 context.terminal = ['tmux', 'splitw', '-h', '-F' '#{pane_pid}', '-P']
-
-p=process('./cryptown')
+# context.log_level = 'debug'
+p= remote("0.0.0.0",60001)
+# p=process('./cryptown')
 ru 		= lambda a: 	p.readuntil(a)
 r 		= lambda n:		p.read(n)
 sla 	= lambda a,b: 	p.sendlineafter(a,b)
@@ -174,7 +175,8 @@ def exp():
     p.interactive()
 
 if __name__ == "__main__":
-    try:
-        exp()
-    except:
-        p.close()
+    while(1):
+        try:
+            exp()
+        except:
+            p.close()

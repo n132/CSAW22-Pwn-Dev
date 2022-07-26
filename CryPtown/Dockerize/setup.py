@@ -29,7 +29,7 @@ def build():
     call(f"cp ../chal/samples ./chal/bin/run/samples",Path("."))
     # start.sh
     with open("./chal/bin/start.sh","w+") as f:
-        f.write(f"cd ./run && ./chal\n")
+        f.write(f"cd ./run && timeout 120 ./chal\n")
     call("chmod +x ./chal/bin/start.sh",Path("."))
     print("[+] Build")
 
