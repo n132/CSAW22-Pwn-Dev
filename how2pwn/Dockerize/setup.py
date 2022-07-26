@@ -3,28 +3,33 @@ from pathlib import Path
 import subprocess
 def call(cmd,cwd):
     return subprocess.check_call(cmd,shell=True,cwd=cwd)
-    
-def init(stage,cwd):
-    call(f"cp ../public/ctf.xinetd ./{stage}",cwd) 
-    call(f"cp ../public/Dockerfile ./{stage}",cwd) 
-    call(f"cp ../public/docker-compose.yml ./{stage}",cwd)
 
-    with open(cwd/stage/"docker-compose.yml",'r') as f:
+def init(stage):
+    wkdir = Path(".")/stage
+    call("wget https://raw.githubusercontent.com/n132/ctf_xinetd/master/Dockerfile",wkdir)
+    call("wget https://raw.githubusercontent.com/n132/ctf_xinetd/master/ctf.xinetd",wkdir)
+    call("wget https://raw.githubusercontent.com/n132/ctf_xinetd/master/docker-compose.yml",wkdir)
+    call("wget https://raw.githubusercontent.com/n132/ctf_xinetd/master/start.sh",wkdir)
+    with open(wkdir/"docker-compose.yml",'r') as f:
         data = f.read()
     data = data.replace("60001",str(60000+int(stage[-1])))
-    with open(cwd/stage/"docker-compose.yml",'w') as f:
+    with open(wkdir/"docker-compose.yml",'w') as f:
         f.write(data)
-    
-    call(f"cp ../public/start.sh ./{stage}",cwd) 
-    bin_dir = cwd / stage / "bin"
+    call("mkdir tmp",wkdir)
+    bin_dir = wkdir / "bin"
     bin_dir.mkdir()
-    call(f"cp ../public/bin/all/{stage} ./{stage}/bin/chal", cwd)
-    call(f"chmod +x ./{stage}/bin/chal",cwd)
-    call(f"cp ../chal/{stage}/flag ./{stage}/bin/", cwd)
+    (bin_dir/"run").mkdir()
+    with open(bin_dir/"start.sh","w+") as f:
+        f.write(f"cd ./run && timeout 120 ./chal\n")
+    call("chmod +x start.sh",bin_dir)
+
+    call(f"cp ../public/bin/all/{stage} ./{stage}/bin/run/chal", Path("."))
+    call(f"chmod +x ./{stage}/bin/run/chal",Path("."))
+    call(f"cp ../chal/{stage}/flag ./{stage}/bin/", Path("."))
     if(Path(f"../chal/{stage}/ticket").exists()):
-        call(f"cp ../chal/{stage}/ticket ./{stage}/bin/",cwd)
+        call(f"cp ../chal/{stage}/ticket ./{stage}/bin/run/",Path("."))
     else:
-        call(f"touch ./{stage}/bin/ticket",cwd)
+        call(f"touch ./{stage}/bin/ticket",Path("."))
     
 def builder(stage="chal1"):
     work_dir = Path(".") / stage
@@ -33,7 +38,7 @@ def builder(stage="chal1"):
     except:
         print("[-] Fail to mkdir")
         exit(1)
-    init(stage,Path("."))
+    init(stage)
     print(f"[+] Built {stage}")
 
 def clean():
@@ -41,11 +46,8 @@ def clean():
     print("[+] Clean Done")
 
 def build():
-    builder("chal1")
-    builder("chal2")
-    builder("chal3")
-    builder("chal4")
-    builder("chal5")
+    for x in range(1,6):
+        builder("chal"+str(x))
 def up():
     cur = Path(".")
     for x in range(5):
