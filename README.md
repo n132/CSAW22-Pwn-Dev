@@ -1,6 +1,3 @@
-# Official Write Up
-
-
 # easyROP
 
 # how2pwn
