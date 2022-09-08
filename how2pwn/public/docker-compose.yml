@@ -5,9 +5,7 @@ services:
         build: ./
         image: ctf
         volumes: 
-            - "./bin/chal:/home/ctf/chal:ro"
-            - "./bin/flag:/home/ctf/flag:ro"
-            - "./bin/ticket:/home/ctf/ticket:ro"
+            - "./bin:/home/ctf/run:ro"
             - "./ctf.xinetd:/etc/xinetd.d/ctf:ro"
             - "./tmp:/tmp:ro"
         ports:

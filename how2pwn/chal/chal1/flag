@@ -1,6 +1,6 @@
 # Stage 1
 
-Congrats(1/5)!
+Congrats(1/4)!
 
 # Ticket
 764fce03d863b5155db4af260374acc1
@@ -23,13 +23,13 @@ p = process("./chal2")
 
 context.arch = 'amd64'
 shellcode = f'''
-short shellcode
+short shellcode to read longer shellcode
 '''
 # gdb.attach(p)
 shellcode = asm(shellcode)
 print(len(shellcode))
 
-p.send(shellcode.ljust(0x10,b'\0'))
+p.sendafter(": \n",shellcode.ljust(0x10,b'\0'))
 
 # If you sent proper shellcode which allows us to read longer shellcode, 
 # you can try the following code. It's an easier way to generate shellcode

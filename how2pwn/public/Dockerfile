@@ -1,4 +1,4 @@
-FROM ubuntu:20.04 as ctf
+FROM ubuntu:22.04 as ctf
 
 RUN apt-get update && \
     apt-get install -y lib32z1 xinetd
@@ -22,18 +22,14 @@ RUN mkdir /home/ctf/dev && \
 RUN mkdir /home/ctf/bin && \
     cp /bin/sh /home/ctf/bin && \
     cp /bin/ls /home/ctf/bin && \
-    cp /bin/cat /home/ctf/bin
+    cp /bin/cat /home/ctf/bin && \
+    cp /usr/bin/timeout /home/ctf/bin
 
-# COPY ./ctf.xinetd /etc/xinetd.d/ctf
 COPY ./start.sh /start.sh
 RUN echo "Blocked by ctf_xinetd" > /etc/banner_fail
 
 RUN chmod +x /start.sh
 
-# COPY ./bin/ /home/ctf/
-# RUN chown -R root:ctf /home/ctf && \
-#     chmod -R 750 /home/ctf && \
-#     chmod 740 /home/ctf/flag
 
 CMD ["/start.sh"]
 

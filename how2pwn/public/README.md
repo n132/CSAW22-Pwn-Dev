@@ -1,8 +1,8 @@
 # Setup
 
 How to run the challenge locally:
-- `docker-compose build`
-- `docker-compose up`
+- `docker compose build`
+- `docker compose up`
 
 How to interact the challenge locally:
 - `docker ps -a` to show all running containers
@@ -13,15 +13,15 @@ How to interact the challenge locally:
 
 I would provide the skeleton code for the exploiting script. 
 
-Your task is to read the hints in the script and complete it.
+Your task is to read the hints in the script and complete the script.
 
 # Debug 
-You can debug on your enviroment, or you can use mine: 
+You can debug on your container, or you can use mine: 
 
-`docker pull n132/pwn:20.04` (I installed the tools with [this script][1])
+`docker pull n132/pwn:22.04` (I installed the tools with [this script][1])
 
 After pull-ing the image, you can run the container with this cmd:
-`docker run --privileged -it n132/pwn:20.04 zsh`
+`docker run --privileged -it n132/pwn:22.04 zsh`
 
 Then, you shall copy the vulnerable file to the container from the host, whose ID can be found by `docker ps -a`.
 
@@ -38,9 +38,9 @@ You can also find more cmds on this page: `https://docs.docker.com/engine/refere
 
 # Debug with GDB
 
-This [article][2] help you to debug with GDB.
+This [article][2] would help you to debug with GDB.
 
 
 
-[1]: https://github.com/n132/CTF-Challenges/blob/main/Enviroment/Docker/Ubuntu20.04.sh
+[1]: https://github.com/n132/CTF-Challenges/blob/main/Enviroment/Docker/Ubuntu22.04.sh
 [2]: https://n132.github.io/2018/03/06/Debug_With_GDB.html

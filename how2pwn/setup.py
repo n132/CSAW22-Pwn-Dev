@@ -9,9 +9,13 @@ def clean():
 
 def release():
     pwd = Path(".")
+    try:
+        call("rm ./public/bin/all/*",pwd)
+    except:
+        pass
     call("make",pwd)
     # copy chal1
-    call("cp ./public/bin/all/chal1 ./public/bin/chal",pwd)
+    call("cp ./public/bin/all/chal1 ./public/bin/chal1",pwd)
     # copy source code
     call("cp ./chal/*/*.c ./public/src/",pwd)
     print("[+] Release")

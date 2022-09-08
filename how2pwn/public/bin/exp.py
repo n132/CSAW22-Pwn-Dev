@@ -14,6 +14,7 @@ gdb.attach(p) # attach to debug, don't forget to run "tmux" before running the s
 # Your task is understanding and completing the shellcode
 
 # And our goal is running exec("/bin/sh",0,0) to get a shell
+# Make sure to hexify the arguments for shellcode!
 
 v1 = ?
 v2 = ?
@@ -32,5 +33,6 @@ mov rdi, rsp
 syscall 
 '''
 
-p.send(asm(shellcode).ljust(0x100,b'\0'))
+p.sendlineafter(": \n",asm(shellcode).ljust(0x100,b'\0'))
+
 p.interactive()
